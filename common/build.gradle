@@ -1,0 +1,14 @@
+architectury {
+    common rootProject.enabled_platforms.split(',')
+}
+
+dependencies {
+    // We depend on Fabric Loader here to use the Fabric @Environment annotations,
+    // which get remapped to the correct annotations on each platform.
+    // Do NOT use other classes from Fabric Loader.
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
+    modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+    modImplementation "me.fzzyhmstrs:fzzy_config:$rootProject.fzzy_config_version"
+    modCompileOnly "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
+}

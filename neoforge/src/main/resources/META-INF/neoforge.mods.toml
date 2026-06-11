@@ -1,0 +1,53 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+#issueTrackerURL = ""
+license = "AGPL-3.0-or-later"
+
+[[mods]]
+modId = "aba_bosses"
+version = "${version}"
+displayName = "Aba's Bosses"
+authors = "Aba Studios, AgentCubed"
+displayURL = "https://github.com/AbaStudios/aba_bosses"
+description = '''
+Boss encounters, mechanics, and progression content from Aba Studios.
+'''
+#logoFile = ""
+
+[[dependencies.aba_bosses]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.aba_bosses]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.aba_bosses]]
+modId = "architectury"
+type = "required"
+versionRange = "[13.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.aba_bosses]]
+modId = "fzzy_config"
+type = "required"
+versionRange = "[0.7.6,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.aba_bosses]]
+modId = "simplytooltips"
+type = "optional"
+versionRange = "[0.1.3,)"
+ordering = "AFTER"
+side = "CLIENT"
+
+[[mixins]]
+config = "aba_bosses.mixins.json"

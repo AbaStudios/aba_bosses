@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "aba_bosses",
+  "version": "${version}",
+  "name": "Aba's Bosses",
+  "description": "Boss encounters, mechanics, and progression content from Aba Studios.",
+  "authors": [
+    "Aba Studios",
+    "AgentCubed"
+  ],
+  "contact": {
+    "sources": "https://github.com/AbaStudios/aba_bosses"
+  },
+  "license": "AGPL-3.0-or-later",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.abastudios.bosses.fabric.AbaBossesFabric"
+    ],
+    "client": [
+      "com.abastudios.bosses.fabric.client.AbaBossesFabricClient"
+    ]
+  },
+  "mixins": [
+    "aba_bosses.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "architectury": ">=13.0.8",
+    "fzzy_config": ">=0.7.6"
+  },
+  "suggests": {
+    "simplytooltips": ">=0.1.3"
+  }
+}

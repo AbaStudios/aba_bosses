@@ -1,0 +1,87 @@
+plugins {
+    id 'com.gradleup.shadow'
+}
+
+architectury {
+    platformSetupLoomIde()
+    neoForge()
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentNeoForge.extendsFrom common
+
+    // Files in this configuration will be bundled into your mod using the Shadow plugin.
+    // Don't use the `shadow` configuration from the plugin itself as it's meant for excluding files.
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+repositories {
+    maven {
+        name = 'NeoForged'
+        url = 'https://maven.neoforged.net/releases'
+    }
+}
+
+dependencies {
+    neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
+    modImplementation "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
+    modImplementation("me.fzzyhmstrs:fzzy_config:${rootProject.fzzy_config_version}+neoforge") {
+        exclude group: 'com.mojang'
+        exclude group: 'commons-io'
+        exclude group: 'cpw.mods'
+        exclude group: 'blue.endless'
+        exclude group: 'net.fabricmc'
+        exclude group: 'net.minecraftforge'
+        exclude group: 'net.neoforged'
+        exclude group: 'net.neoforged.fancymodloader'
+        exclude group: 'net.peanuuutz.tomlkt'
+        exclude group: 'org.apache.commons'
+        exclude group: 'org.apache.logging.log4j'
+        exclude group: 'org.jetbrains.kotlin'
+        exclude group: 'org.jetbrains.kotlinx'
+        exclude group: 'org.ow2.asm'
+    }
+    modCompileOnly "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
+    modLocalRuntime "maven.modrinth:emi:$rootProject.emi_version"
+    modLocalRuntime "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
+    modLocalRuntime "maven.modrinth:sodium:$rootProject.sodium_version"
+    forgeRuntimeLibrary "blue.endless:jankson:1.2.3"
+    forgeRuntimeLibrary "net.peanuuutz.tomlkt:tomlkt-jvm:0.3.7"
+    forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-reflect:2.0.0"
+    forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-stdlib:2.0.0"
+    forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.0"
+    forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0"
+    forgeRuntimeLibrary "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.1"
+    forgeRuntimeLibrary "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.8.1"
+    forgeRuntimeLibrary "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.1"
+    forgeRuntimeLibrary "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.1"
+
+    common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+    shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
+}
+
+processResources {
+    inputs.property 'version', project.version
+
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand version: inputs.properties.version
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = 'dev-shadow'
+}
+
+remapJar {
+    inputFile.set shadowJar.archiveFile
+}

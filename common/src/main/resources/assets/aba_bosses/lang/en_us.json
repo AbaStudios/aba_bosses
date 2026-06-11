@@ -1,0 +1,14 @@
+{
+  "config.aba_bosses.enable_downfall_shard_tooltips": "Enable Downfall Shard Simply Tooltips",
+  "aba_bosses.config": "Aba's Bosses",
+  "aba_bosses.config.enableDownfallShardTooltips": "Enable Downfall Shard Simply Tooltips",
+  "aba_bosses.config.enableDownfallShardTooltips.desc": "Use Simply Tooltips rendering for the Downfall Shard when Simply Tooltips is loaded.",
+  "item.aba_bosses.downfall_shard": "Downfall Shard",
+  "itemGroup.aba_bosses.aba_bosses": "Aba's Bosses",
+  "tooltip.aba_bosses.downfall_shard.disabled": "Modern tooltip rendering disabled by config.",
+  "tooltip.aba_bosses.downfall_shard.recovered": "Recovered from an unfinished encounter.",
+  "tooltip.aba_bosses.downfall_shard.description": "A dormant fragment keyed to Downfall. It resists every decisive outcome.",
+  "tooltip.aba_bosses.downfall_shard.line_1": "A dormant fragment keyed to Downfall.",
+  "tooltip.aba_bosses.downfall_shard.line_2": "It resists every decisive outcome.",
+  "tooltip.aba_bosses.downfall_shard.section": "Encounter Material"
+}
