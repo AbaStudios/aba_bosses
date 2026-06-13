@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:add",
+  "argument1": {
+    "type": "minecraft:max",
+    "argument1": {
+      "type": "minecraft:add",
+      "argument1": "aba_bosses:downfall/end_island_base",
+      "argument2": {
+        "type": "minecraft:mul",
+        "argument1": 0.58,
+        "argument2": {
+          "type": "minecraft:mul",
+          "argument1": "aba_bosses:downfall/central_weight",
+          "argument2": "aba_bosses:downfall/central_mass"
+        }
+      }
+    },
+    "argument2": "aba_bosses:downfall/island_shells"
+  },
+  "argument2": {
+    "type": "minecraft:add",
+    "argument1": "aba_bosses:downfall/detail_noise",
+    "argument2": "aba_bosses:downfall/slab_modulation"
+  }
+}

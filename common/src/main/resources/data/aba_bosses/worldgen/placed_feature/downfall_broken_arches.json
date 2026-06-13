@@ -1,0 +1,33 @@
+{
+  "feature": "aba_bosses:broken_arch",
+  "placement": [
+    {
+      "type": "minecraft:rarity_filter",
+      "chance": 21
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:noise_based_count",
+      "noise_to_count_ratio": 1,
+      "noise_factor": 620.0,
+      "noise_offset": -0.32
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": {
+          "absolute": 32
+        },
+        "max_inclusive": {
+          "absolute": 176
+        }
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "type": "aba_bosses:the_downfall_dimension",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "aba_bosses:the_downfall_dimension",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "aba_bosses:downfall_core",
+          "parameters": {
+            "temperature": [-1.0, 1.0],
+            "humidity": [-1.0, 1.0],
+            "continentalness": [0.62, 1.0],
+            "erosion": [-1.0, 1.0],
+            "weirdness": [-1.0, 1.0],
+            "depth": [0.65, 2.0],
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "aba_bosses:downfall_void",
+          "parameters": {
+            "temperature": [-1.0, 1.0],
+            "humidity": [-1.0, 1.0],
+            "continentalness": [-1.0, 0.18],
+            "erosion": [-1.0, 1.0],
+            "weirdness": [-1.0, 1.0],
+            "depth": [-1.0, 0.45],
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "aba_bosses:downfall_shards",
+          "parameters": {
+            "temperature": [-1.0, 0.25],
+            "humidity": [-1.0, 1.0],
+            "continentalness": [0.18, 1.0],
+            "erosion": [-1.0, 0.15],
+            "weirdness": [0.05, 1.0],
+            "depth": [-1.0, 1.4],
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "aba_bosses:downfall_rings",
+          "parameters": {
+            "temperature": [0.25, 1.0],
+            "humidity": [-1.0, 1.0],
+            "continentalness": [0.18, 1.0],
+            "erosion": [-0.2, 1.0],
+            "weirdness": [-1.0, 0.2],
+            "depth": [-1.0, 1.4],
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "aba_bosses:downfall_hallows",
+          "parameters": {
+            "temperature": [-1.0, 1.0],
+            "humidity": [-1.0, 1.0],
+            "continentalness": [0.18, 1.0],
+            "erosion": [-1.0, 1.0],
+            "weirdness": [-1.0, 1.0],
+            "depth": [-1.0, 1.4],
+            "offset": 0.01
+          }
+        }
+      ]
+    }
+  }
+}

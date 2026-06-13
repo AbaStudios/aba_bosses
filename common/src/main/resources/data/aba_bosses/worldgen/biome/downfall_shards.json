@@ -1,0 +1,61 @@
+{
+  "temperature": 0.35,
+  "downfall": 0.0,
+  "has_precipitation": false,
+  "effects": {
+    "sky_color": 0,
+    "fog_color": 6184542,
+    "water_color": 329011,
+    "water_fog_color": 329011,
+    "grass_color": 6254719,
+    "foliage_color": 7308927,
+    "ambient_sound": "minecraft:block.amethyst_block.chime",
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "additions_sound": {
+      "sound": "minecraft:block.amethyst_block.chime",
+      "tick_chance": 0.012
+    },
+    "particle": {
+      "options": {
+        "type": "minecraft:falling_obsidian_tear"
+      },
+      "probability": 0.015
+    }
+  },
+  "spawners": {
+    "monster": [
+      {
+        "type": "minecraft:enderman",
+        "weight": 10,
+        "minCount": 2,
+        "maxCount": 4
+      }
+    ],
+    "creature": [],
+    "ambient": [],
+    "axolotls": [],
+    "underground_water_creature": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    ["minecraft:end_gateway_return", "aba_bosses:downfall_shard_clusters"],
+    ["minecraft:chorus_plant"],
+    ["aba_bosses:downfall_inverted_pyramids"],
+    [],
+    [],
+    []
+  ]
+}

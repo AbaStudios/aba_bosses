@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:range_choice",
+  "input": {
+    "type": "minecraft:end_islands"
+  },
+  "min_inclusive": -0.46,
+  "max_exclusive": 1.0,
+  "when_in_range": 0.0,
+  "when_out_of_range": -4.8
+}

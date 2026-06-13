@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:mul",
+  "argument1": 1.08,
+  "argument2": {
+    "type": "minecraft:end_islands"
+  }
+}

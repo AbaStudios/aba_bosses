@@ -1,0 +1,33 @@
+{
+  "feature": "aba_bosses:downfall_shard_cluster",
+  "placement": [
+    {
+      "type": "minecraft:rarity_filter",
+      "chance": 7
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:noise_based_count",
+      "noise_to_count_ratio": 2,
+      "noise_factor": 720.0,
+      "noise_offset": -0.18
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": {
+          "absolute": 32
+        },
+        "max_inclusive": {
+          "absolute": 156
+        }
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

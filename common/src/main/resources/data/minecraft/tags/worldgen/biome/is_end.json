@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "aba_bosses:downfall_core",
+    "aba_bosses:downfall_void",
+    "aba_bosses:downfall_shards",
+    "aba_bosses:downfall_rings",
+    "aba_bosses:downfall_hallows"
+  ]
+}

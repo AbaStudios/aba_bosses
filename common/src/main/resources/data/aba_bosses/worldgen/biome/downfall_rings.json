@@ -1,0 +1,72 @@
+{
+  "temperature": 0.8,
+  "downfall": 0.0,
+  "has_precipitation": false,
+  "effects": {
+    "sky_color": 0,
+    "fog_color": 2634308,
+    "water_color": 329011,
+    "water_fog_color": 329011,
+    "grass_color": 5000268,
+    "foliage_color": 4210752,
+    "ambient_sound": "minecraft:ambient.warped_forest.loop",
+    "mood_sound": {
+      "sound": "minecraft:ambient.basalt_deltas.mood",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "additions_sound": {
+      "sound": "minecraft:block.ancient_debris.step",
+      "tick_chance": 0.007
+    },
+    "particle": {
+      "options": {
+        "type": "minecraft:portal"
+      },
+      "probability": 0.006
+    }
+  },
+  "spawners": {
+    "monster": [
+      {
+        "type": "minecraft:enderman",
+        "weight": 10,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "minecraft:phantom",
+        "weight": 1,
+        "minCount": 1,
+        "maxCount": 1
+      }
+    ],
+    "creature": [],
+    "ambient": [],
+    "axolotls": [],
+    "underground_water_creature": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "misc": []
+  },
+  "spawn_costs": {
+    "minecraft:phantom": {
+      "energy_budget": 0.1,
+      "charge": 1.0
+    }
+  },
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    ["minecraft:end_gateway_return", "aba_bosses:downfall_suspended_rings"],
+    ["minecraft:chorus_plant"],
+    ["aba_bosses:downfall_broken_arches"],
+    [],
+    [],
+    []
+  ]
+}

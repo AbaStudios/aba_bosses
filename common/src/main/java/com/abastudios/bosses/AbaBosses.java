@@ -1,6 +1,7 @@
 package com.abastudios.bosses;
 
 import com.abastudios.bosses.config.AbaBossesConfig;
+import com.abastudios.bosses.registry.AbaBossesFeatures;
 import com.abastudios.bosses.registry.AbaBossesItems;
 import com.abastudios.bosses.registry.AbaBossesTabs;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ public final class AbaBosses {
      */
     public static void init() {
         AbaBossesConfig.init();
+        AbaBossesFeatures.register();
         AbaBossesTabs.register();
         AbaBossesItems.register();
     }

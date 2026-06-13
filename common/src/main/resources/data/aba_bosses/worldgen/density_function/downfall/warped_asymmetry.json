@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:noise",
+  "noise": "aba_bosses:downfall_weirdness",
+  "xz_scale": 0.46,
+  "y_scale": 0.0
+}

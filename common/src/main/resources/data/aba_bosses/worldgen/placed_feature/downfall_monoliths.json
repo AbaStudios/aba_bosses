@@ -1,0 +1,33 @@
+{
+  "feature": "aba_bosses:inverted_pyramid",
+  "placement": [
+    {
+      "type": "minecraft:rarity_filter",
+      "chance": 23
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:noise_based_count",
+      "noise_to_count_ratio": 1,
+      "noise_factor": 1250.0,
+      "noise_offset": -0.32
+    },
+    {
+      "type": "minecraft:height_range",
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": {
+          "absolute": 64
+        },
+        "max_inclusive": {
+          "absolute": 172
+        }
+      }
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

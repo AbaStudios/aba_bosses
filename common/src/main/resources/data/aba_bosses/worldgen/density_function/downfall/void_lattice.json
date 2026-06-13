@@ -1,0 +1,71 @@
+{
+  "type": "minecraft:mul",
+  "argument1": {
+    "type": "minecraft:mul",
+    "argument1": -1.02,
+    "argument2": "aba_bosses:downfall/carve_weight"
+  },
+  "argument2": {
+    "type": "minecraft:spline",
+    "spline": {
+      "coordinate": {
+        "type": "minecraft:abs",
+        "argument": {
+          "type": "minecraft:add",
+          "argument1": {
+            "type": "minecraft:noise",
+            "noise": "aba_bosses:downfall_lattice",
+            "xz_scale": 3.35,
+            "y_scale": 0.08
+          },
+          "argument2": {
+            "type": "minecraft:add",
+            "argument1": {
+              "type": "minecraft:mul",
+              "argument1": 0.34,
+              "argument2": {
+                "type": "minecraft:noise",
+                "noise": "aba_bosses:downfall_detail",
+                "xz_scale": 1.85,
+                "y_scale": 0.04
+              }
+            },
+            "argument2": {
+              "type": "minecraft:mul",
+              "argument1": 0.22,
+              "argument2": {
+                "type": "minecraft:y_clamped_gradient",
+                "from_y": 0,
+                "to_y": 128,
+                "from_value": -1.0,
+                "to_value": 1.0
+              }
+            }
+          }
+        }
+      },
+      "points": [
+        {
+          "location": 0.0,
+          "value": 1.0,
+          "derivative": 0.0
+        },
+        {
+          "location": 0.14,
+          "value": 0.88,
+          "derivative": -0.45
+        },
+        {
+          "location": 0.40,
+          "value": 0.34,
+          "derivative": -0.85
+        },
+        {
+          "location": 0.60,
+          "value": 0.0,
+          "derivative": 0.0
+        }
+      ]
+    }
+  }
+}

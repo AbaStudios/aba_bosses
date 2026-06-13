@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:add",
+  "argument1": {
+    "type": "minecraft:add",
+    "argument1": {
+      "type": "minecraft:add",
+      "argument1": {
+        "type": "minecraft:add",
+        "argument1": {
+          "type": "minecraft:min",
+          "argument1": "aba_bosses:downfall/outer_islands",
+          "argument2": {
+            "type": "minecraft:add",
+            "argument1": "aba_bosses:downfall/outer_islands",
+            "argument2": "aba_bosses:downfall/void_lattice"
+          }
+        },
+        "argument2": "aba_bosses:downfall/porosity"
+      },
+        "argument2": {
+          "type": "minecraft:add",
+          "argument1": "aba_bosses:downfall/shatter",
+          "argument2": {
+            "type": "minecraft:add",
+            "argument1": {
+              "type": "minecraft:add",
+              "argument1": "aba_bosses:downfall/height_variation",
+              "argument2": "aba_bosses:downfall/island_height_profile"
+            },
+            "argument2": "aba_bosses:downfall/void_gap_guard"
+          }
+        }
+    },
+    "argument2": "aba_bosses:downfall/height_gate"
+  },
+  "argument2": 0.06
+}
