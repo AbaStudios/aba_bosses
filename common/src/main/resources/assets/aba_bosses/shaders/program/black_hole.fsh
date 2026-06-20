@@ -139,7 +139,7 @@ float blackHoleFrontDistance(vec3 cameraPosition, vec3 ray, vec3 forward) {
         return max(closestT - sqrt(radius2 - closestDistance2), 0.0) * forwardScale;
     }
 
-    return max(closestT - radius, 0.0) * forwardScale;
+    return -1.0;
 }
 
 bool isOccludedByScene(vec2 uv, vec3 cameraPosition, vec3 ray, vec3 forward) {
@@ -205,21 +205,23 @@ void main() {
     float dil = mix(1.0, DILATION_MIN, 1.0);
     float shield = 1.0;
 
-    float bmax = rout + 3.0;
+    float bmax = rout + 10.0;
     vec3 cameraRight = cameraRightLocal();
     vec3 cameraUp = cameraUpLocal();
     vec3 cameraForward = cameraForwardLocal();
     vec3 cameraPosition = cameraLocal();
     vec3 ray = fragmentRayLocal(uv, cameraRight, cameraUp, cameraForward);
-    if (isOccludedByScene(uv, cameraPosition, ray, cameraForward)) {
+    vec3 traceCameraPosition = cameraPosition / max(BlackHoleWorldScale, 1.0e-4);
+    float cameraDistance = length(traceCameraPosition);
+    float closestT = -dot(traceCameraPosition, ray);
+    if (closestT + rout <= 0.0) {
         fragColor = original;
         return;
     }
 
-    vec3 traceCameraPosition = cameraPosition / max(BlackHoleWorldScale, 1.0e-4);
-    float cameraDistance = length(traceCameraPosition);
-    float closestT = -dot(traceCameraPosition, ray);
-    if (closestT <= 0.0) {
+    float forwardScale = max(dot(ray, cameraForward), 1.0e-4);
+    float closestDepth = max((closestT - rout) * BlackHoleWorldScale * forwardScale, 0.0);
+    if (sceneForwardDistance(uv) < closestDepth - 0.05) {
         fragColor = original;
         return;
     }
@@ -230,15 +232,15 @@ void main() {
     float b = sqrt(max(h2, 0.0));
 
     if (b >= bmax) {
+        float closestWorldDepth = max(closestT * BlackHoleWorldScale * forwardScale, 0.0);
+        if (sceneForwardDistance(uv) < closestWorldDepth - 0.05) {
+            fragColor = original;
+            return;
+        }
         vec3 bendDirection = normalize(closestApproach);
         float deflection = (2.0 / max(b, 1.0e-3)) * window * shield;
         vec3 sourceRay = normalize(ray - bendDirection * deflection);
         vec2 suv = mirrorUV(rayToUv(sourceRay, cameraRight, cameraUp, cameraForward));
-        if (isOccludedByScene(suv, cameraPosition, fragmentRayLocal(suv, cameraRight, cameraUp, cameraForward), cameraForward)) {
-            fragColor = original;
-            return;
-        }
-
         vec3 term = texture(DiffuseSampler, suv).rgb;
         fragColor = vec4(term + stars(sourceRay) * STAR_GAIN * window * shield, original.a);
         return;
@@ -255,11 +257,15 @@ void main() {
     vec3 emitc = vec3(0.0);
     float trans = 1.0;
     bool captured = false;
+    float hitDepth = 1.0e20;
     float sPrev = dot(x, n);
     vec3 xPrev = x;
+    vec3 vPrev = v;
     float maxTraceRadius = max(cameraDistance + rout + 8.0, 20.0);
     float maxTraceRadius2 = maxTraceRadius * maxTraceRadius;
     float escapeRadius2 = max(cameraDistance * cameraDistance, maxTraceRadius2 * 0.35);
+
+    int crossingCount = 0;
 
     for (int i = 0; i < N_STEPS; i++) {
         float r2 = dot(x, x);
@@ -288,42 +294,65 @@ void main() {
         if (s * sPrev < 0.0 && trans > 0.02) {
             float tc = sPrev / (sPrev - s);
             vec3 xc = mix(xPrev, x, tc);
+            vec3 vc = mix(vPrev, v, tc);
             float rc = length(xc);
             if (rc > rin && rc < rout) {
-                float band = smoothstep(rin, rin * 1.25, rc)
-                        * (1.0 - smoothstep(rout * 0.70, rout, rc));
+                crossingCount++;
+                if (crossingCount < 3) {
+                    float weight = 1.0;
+                    if (crossingCount == 2) {
+                        weight = 0.12;
+                    }
+                    vec3 diskRelPos = (xc - traceCameraPosition) * BlackHoleWorldScale;
+                    float diskDepth = dot(diskRelPos, cameraForward);
+                    if (sceneForwardDistance(uv) > diskDepth - 0.05) {
+                        hitDepth = min(hitDepth, diskDepth);
+                        float band = smoothstep(rin, rin * 1.25, rc)
+                                * (1.0 - smoothstep(rout * 0.70, rout, rc));
 
-                float phi = atan(dot(xc, e2), xc.x);
-                float turns = phi / 6.2831853;
-                float kep = pow(rin / rc, 1.5);
-                float gloc = sqrt(max(1.0 - 1.5 / rc, 0.02));
-                float swirl = rc * DISK_WIND * 0.12 - t * kep * spd * gloc * dil * sdir;
-                float streaks = vnoiseWrapY(vec2(rc * 2.8, turns * 19.0 + swirl * 3.0), 19.0) * 0.65
-                        + vnoiseWrapY(vec2(rc * 1.0, turns * 9.0 + swirl * 1.5 + 7.0), 9.0) * 0.35;
-                streaks = 0.35 + DISK_CONTRAST * streaks * streaks;
+                        float phi = atan(dot(xc, e2), xc.x);
+                        float turns = phi / 6.2831853;
+                        float kep = pow(rin / rc, 1.5);
+                        float gloc = sqrt(max(1.0 - 1.5 / rc, 0.02));
+                        float swirl = rc * DISK_WIND * 0.12 - t * kep * spd * gloc * dil * sdir;
+                        float streaks = vnoiseWrapY(vec2(rc * 2.8, turns * 19.0 + swirl * 3.0), 19.0) * 0.65
+                                + vnoiseWrapY(vec2(rc * 1.0, turns * 9.0 + swirl * 1.5 + 7.0), 9.0) * 0.35;
+                        streaks = 0.35 + DISK_CONTRAST * streaks * streaks;
 
-                vec3 gasdir = normalize(cross(n, xc)) * sdir;
-                float beta = clamp(inversesqrt(max(2.0 * (rc - 1.0), 0.2)), 0.0, 0.99);
-                float g = gloc / max(1.0 + beta * dot(gasdir, normalize(v)), 0.05);
-                g = mix(1.0, g, DOPPLER_MIX);
+                        vec3 gasdir = normalize(cross(n, xc)) * sdir;
+                        float beta = clamp(inversesqrt(max(2.0 * (rc - 1.0), 0.2)), 0.0, 0.99);
+                        float g = gloc / max(1.0 + beta * dot(gasdir, normalize(vc)), 0.05);
+                        g = mix(1.0, g, DOPPLER_MIX);
 
-                float xpr = max(1.0 - sqrt(rin / rc), 0.0);
-                float tprof = pow(rin / rc, 0.75) * pow(xpr, 0.25) / 0.488;
-                vec3 cbb = blackbody(DISK_TEMP * tprof * g);
-                float boost = pow(g, DISK_BEAM);
+                        float xpr = max(1.0 - sqrt(rin / rc), 0.0);
+                        float tprof = pow(rin / rc, 0.75) * pow(xpr, 0.25) / 0.488;
+                        vec3 cbb = blackbody(DISK_TEMP * tprof * g);
+                        float boost = pow(g, DISK_BEAM);
 
-                float density = band * streaks;
-                emitc += trans * cbb * (DISK_GAIN * 2.2 * density * tprof * tprof * boost);
-                trans *= 1.0 - clamp(DISK_OPACITY * density, 0.0, 1.0);
+                        float density = band * streaks;
+                        emitc += weight * trans * cbb * (DISK_GAIN * 2.2 * density * tprof * tprof * boost);
+                        trans *= 1.0 - clamp(DISK_OPACITY * density * weight, 0.0, 1.0);
+                    }
+                }
             }
         }
 
+        vPrev = v;
         sPrev = s;
         xPrev = x;
     }
 
     if (!captured && dot(x, x) < 4.0) {
         captured = true;
+    }
+
+    if (captured) {
+        float horizonDepth = closestT * BlackHoleWorldScale * forwardScale;
+        if (sceneForwardDistance(uv) > horizonDepth - 0.05) {
+            hitDepth = min(hitDepth, horizonDepth);
+        } else {
+            captured = false;
+        }
     }
 
     vec3 bg = vec3(0.0);
@@ -336,14 +365,19 @@ void main() {
             vec2 suv = mirrorUV(mix(uv, warpedUv, window * shield));
             float toward = smoothstep(0.02, 0.35, forward);
             vec3 sourceRay = fragmentRayLocal(suv, cameraRight, cameraUp, cameraForward);
-            if (isOccludedByScene(suv, cameraPosition, sourceRay, cameraForward)) {
-                bg += original.rgb * toward;
-            } else {
-                bg += texture(DiffuseSampler, suv).rgb * toward;
-            }
+            bg += texture(DiffuseSampler, suv).rgb * toward;
         }
     }
 
-    vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
-    fragColor = vec4(col, original.a);
+    float occlusionDepth = hitDepth;
+    if (occlusionDepth > 1.0e19) {
+        occlusionDepth = max(closestT * BlackHoleWorldScale * forwardScale, 0.0);
+    }
+
+    if (sceneForwardDistance(uv) < occlusionDepth - 0.05) {
+        fragColor = original;
+    } else {
+        vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
+        fragColor = vec4(col, original.a);
+    }
 }
