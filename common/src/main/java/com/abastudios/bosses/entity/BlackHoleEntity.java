@@ -54,6 +54,7 @@ public final class BlackHoleEntity extends Entity {
     public BlackHoleEntity(EntityType<? extends BlackHoleEntity> entityType, Level level) {
         super(entityType, level);
         this.noPhysics = true;
+        this.noCulling = true;
     }
 
     @Override
@@ -73,6 +74,7 @@ public final class BlackHoleEntity extends Entity {
     public void tick() {
         super.tick();
         this.noPhysics = true;
+        this.noCulling = true;
         this.setDeltaMovement(Vec3.ZERO);
 
         if (!this.level().isClientSide()) {

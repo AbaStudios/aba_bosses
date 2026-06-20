@@ -150,12 +150,6 @@ public final class BlackHolePostEffect {
         }
 
         float shadowRadius = Math.max(24.0f * sizeScale, distance(center.x, center.y, edge.x, edge.y));
-        float effectRadius = shadowRadius * (effectRadiusBlocks / shadowRadiusBlocks);
-        if (center.x + effectRadius < 0.0f || center.x - effectRadius > targetWidth || center.y + effectRadius < 0.0f || center.y - effectRadius > targetHeight) {
-            logProjectionState(blackHole, "effect_out_of_view", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
-            return null;
-        }
-
         LocalBasis localBasis = createLocalBasis(blackHole, partialTick);
         Vec3 cameraLocal = toLocal(cameraPosition.subtract(position), localBasis);
         Vec3 cameraRightLocal = toLocal(new Vec3(camera.getLeftVector()).reverse(), localBasis);
