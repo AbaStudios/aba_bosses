@@ -191,17 +191,24 @@ void main() {
 
     float rh = max(BlackHoleShadowRadiusPixels / res.y, 1.0e-4);
 
-    vec2 p = (uv - center) * vec2(aspect, 1.0);
-    float plen = length(p);
-    float window = exp(-pow(plen / (7.0 * rh), 2.0));
-    if (window < 0.0006) {
-        fragColor = original;
-        return;
-    }
+    vec3 cameraPosition = cameraLocal();
+    vec3 traceCameraPosition = cameraPosition / max(BlackHoleWorldScale, 1.0e-4);
+    float cameraDistance = length(traceCameraPosition);
 
     float t = BlackHoleTime;
     float rin = max(DISK_INNER, 1.6);
     float rout = max(DISK_OUTER, rin + 0.5);
+
+    vec2 p = (uv - center) * vec2(aspect, 1.0);
+    float plen = length(p);
+    float window = exp(-pow(plen / (7.0 * rh), 2.0));
+    if (cameraDistance < rout + 10.0) {
+        window = 1.0;
+    } else if (window < 0.0006) {
+        fragColor = original;
+        return;
+    }
+
     float dil = mix(1.0, DILATION_MIN, 1.0);
     float shield = 1.0;
 
@@ -209,10 +216,7 @@ void main() {
     vec3 cameraRight = cameraRightLocal();
     vec3 cameraUp = cameraUpLocal();
     vec3 cameraForward = cameraForwardLocal();
-    vec3 cameraPosition = cameraLocal();
     vec3 ray = fragmentRayLocal(uv, cameraRight, cameraUp, cameraForward);
-    vec3 traceCameraPosition = cameraPosition / max(BlackHoleWorldScale, 1.0e-4);
-    float cameraDistance = length(traceCameraPosition);
     float closestT = -dot(traceCameraPosition, ray);
     if (closestT + rout <= 0.0) {
         fragColor = original;

@@ -19,7 +19,7 @@ public final class AbaBossesEntityTypes {
             () -> EntityType.Builder.<BlackHoleEntity>of(BlackHoleEntity::new, MobCategory.MISC)
                     .fireImmune()
                     .sized(2.7f, 2.7f)
-                    .clientTrackingRange(16)
+                    .clientTrackingRange(160)
                     .updateInterval(Integer.MAX_VALUE)
                     .build("black_hole")
     );

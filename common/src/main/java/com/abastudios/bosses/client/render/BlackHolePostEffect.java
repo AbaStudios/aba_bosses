@@ -136,17 +136,29 @@ public final class BlackHolePostEffect {
         float sizeScale = blackHole.getSizeScale();
         float shadowRadiusBlocks = BlackHoleEntity.SHADOW_RADIUS * sizeScale;
         float effectRadiusBlocks = BlackHoleEntity.EFFECT_RADIUS * sizeScale;
+
+        double distanceSqr = position.distanceToSqr(cameraPosition);
+        boolean inside = distanceSqr < effectRadiusBlocks * effectRadiusBlocks;
+
         ProjectedPoint center = project(position.subtract(cameraPosition), camera, projectionMatrix, targetWidth, targetHeight);
         if (center == null) {
-            logProjectionState(blackHole, "center_not_projected", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
-            return null;
+            if (inside) {
+                center = new ProjectedPoint(targetWidth / 2.0f, targetHeight / 2.0f, 0.0f);
+            } else {
+                logProjectionState(blackHole, "center_not_projected", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
+                return null;
+            }
         }
 
         Vec3 edgePosition = position.add(new Vec3(camera.getUpVector()).scale(shadowRadiusBlocks));
         ProjectedPoint edge = project(edgePosition.subtract(cameraPosition), camera, projectionMatrix, targetWidth, targetHeight);
         if (edge == null) {
-            logProjectionState(blackHole, "edge_not_projected", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
-            return null;
+            if (inside) {
+                edge = new ProjectedPoint(targetWidth / 2.0f, targetHeight / 2.0f + 100.0f, 0.0f);
+            } else {
+                logProjectionState(blackHole, "edge_not_projected", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
+                return null;
+            }
         }
 
         float shadowRadius = Math.max(24.0f * sizeScale, distance(center.x, center.y, edge.x, edge.y));
