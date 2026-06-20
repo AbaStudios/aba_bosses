@@ -2,7 +2,7 @@
   "type": "minecraft:mul",
   "argument1": {
     "type": "minecraft:mul",
-    "argument1": -0.98,
+    "argument1": -1.25,
     "argument2": "aba_bosses:downfall/carve_weight"
   },
   "argument2": {

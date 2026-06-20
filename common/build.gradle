@@ -11,4 +11,5 @@ dependencies {
     modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
     modImplementation "me.fzzyhmstrs:fzzy_config:$rootProject.fzzy_config_version"
     modCompileOnly "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
+    modCompileOnly "maven.modrinth:lodestonelib:$rootProject.lodestone_fabric_version"
 }

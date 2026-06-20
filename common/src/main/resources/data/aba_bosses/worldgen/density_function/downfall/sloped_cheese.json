@@ -7,13 +7,9 @@
       "argument1": {
         "type": "minecraft:add",
         "argument1": {
-          "type": "minecraft:min",
+          "type": "minecraft:add",
           "argument1": "aba_bosses:downfall/outer_islands",
-          "argument2": {
-            "type": "minecraft:add",
-            "argument1": "aba_bosses:downfall/outer_islands",
-            "argument2": "aba_bosses:downfall/void_lattice"
-          }
+          "argument2": "aba_bosses:downfall/void_lattice"
         },
         "argument2": "aba_bosses:downfall/porosity"
       },

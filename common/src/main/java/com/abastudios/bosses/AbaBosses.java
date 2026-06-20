@@ -1,9 +1,12 @@
 package com.abastudios.bosses;
 
 import com.abastudios.bosses.config.AbaBossesConfig;
+import com.abastudios.bosses.registry.AbaBossesEntityTypes;
 import com.abastudios.bosses.registry.AbaBossesFeatures;
+import com.abastudios.bosses.registry.AbaBossesGameRules;
 import com.abastudios.bosses.registry.AbaBossesItems;
 import com.abastudios.bosses.registry.AbaBossesTabs;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +26,17 @@ public final class AbaBosses {
      */
     public static void init() {
         AbaBossesConfig.init();
+        AbaBossesGameRules.register();
+        AbaBossesEntityTypes.register();
         AbaBossesFeatures.register();
         AbaBossesTabs.register();
         AbaBossesItems.register();
+    }
+
+    /**
+     * Creates a resource location in the Aba's Bosses namespace.
+     */
+    public static ResourceLocation location(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 }

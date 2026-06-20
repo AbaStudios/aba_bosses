@@ -51,9 +51,13 @@ dependencies {
         exclude group: 'org.ow2.asm'
     }
     modCompileOnly "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
+    modCompileOnly "team.lodestar.lodestone:lodestone:$rootProject.lodestone_neoforge_version"
     modLocalRuntime "maven.modrinth:emi:$rootProject.emi_version"
     modLocalRuntime "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
-    modLocalRuntime "maven.modrinth:sodium:$rootProject.sodium_version"
+    modLocalRuntime "team.lodestar.lodestone:lodestone:$rootProject.lodestone_neoforge_version"
+    modLocalRuntime "maven.modrinth:sodium:$rootProject.sodium_neoforge_version"
+    modLocalRuntime "maven.modrinth:mixintrace-reforged:$rootProject.mixintrace_neoforge_version"
+    modLocalRuntime "maven.modrinth:yeetus-experimentus:${rootProject.yeetus_experimentus_version}-neoforge"
     forgeRuntimeLibrary "blue.endless:jankson:1.2.3"
     forgeRuntimeLibrary "net.peanuuutz.tomlkt:tomlkt-jvm:0.3.7"
     forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-reflect:2.0.0"

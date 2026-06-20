@@ -2,6 +2,7 @@ package com.abastudios.bosses.worldgen.feature;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -30,7 +31,7 @@ public final class DownfallShardClusterFeature extends Feature<NoneFeatureConfig
         BlockPos generationOrigin = context.origin();
         BlockPos origin = DownfallFeatureSupport.surfaceOrigin(level, context.origin(), random);
 
-        if (level.isOutsideBuildHeight(origin) || !DownfallFeatureSupport.hasSolidAnchor(level, origin.below(), 2)) {
+        if (level.isOutsideBuildHeight(origin) || !DownfallFeatureSupport.hasSolidAnchor(level, origin.below(), Direction.DOWN, 2)) {
             return false;
         }
 

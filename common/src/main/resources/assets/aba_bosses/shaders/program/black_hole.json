@@ -1,0 +1,149 @@
+{
+  "vertex": "blit",
+  "fragment": "aba_bosses:black_hole",
+  "attributes": [
+    "Position"
+  ],
+  "samplers": [
+    {
+      "name": "DiffuseSampler"
+    },
+    {
+      "name": "DepthSampler"
+    }
+  ],
+  "uniforms": [
+    {
+      "name": "ProjMat",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+    },
+    {
+      "name": "OutSize",
+      "type": "float",
+      "count": 2,
+      "values": [1, 1]
+    },
+    {
+      "name": "BlackHoleActive",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraLocalX",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraLocalY",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraLocalZ",
+      "type": "float",
+      "count": 1,
+      "values": [16]
+    },
+    {
+      "name": "BlackHoleCameraRightLocalX",
+      "type": "float",
+      "count": 1,
+      "values": [1]
+    },
+    {
+      "name": "BlackHoleCameraRightLocalY",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraRightLocalZ",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraUpLocalX",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraUpLocalY",
+      "type": "float",
+      "count": 1,
+      "values": [1]
+    },
+    {
+      "name": "BlackHoleCameraUpLocalZ",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraForwardLocalX",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraForwardLocalY",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCameraForwardLocalZ",
+      "type": "float",
+      "count": 1,
+      "values": [-1]
+    },
+    {
+      "name": "BlackHoleProjectionScaleX",
+      "type": "float",
+      "count": 1,
+      "values": [1]
+    },
+    {
+      "name": "BlackHoleProjectionScaleY",
+      "type": "float",
+      "count": 1,
+      "values": [1]
+    },
+    {
+      "name": "BlackHoleDepthA",
+      "type": "float",
+      "count": 1,
+      "values": [1]
+    },
+    {
+      "name": "BlackHoleDepthB",
+      "type": "float",
+      "count": 1,
+      "values": [-1]
+    },
+    {
+      "name": "BlackHoleOcclusionRadius",
+      "type": "float",
+      "count": 1,
+      "values": [2.5980762]
+    },
+    {
+      "name": "BlackHoleWorldScale",
+      "type": "float",
+      "count": 1,
+      "values": [1]
+    },
+    {
+      "name": "BlackHoleTime",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    }
+  ]
+}

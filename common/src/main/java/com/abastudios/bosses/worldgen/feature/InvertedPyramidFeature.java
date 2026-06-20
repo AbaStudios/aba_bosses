@@ -2,6 +2,7 @@ package com.abastudios.bosses.worldgen.feature;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
@@ -30,7 +31,7 @@ public final class InvertedPyramidFeature extends Feature<NoneFeatureConfigurati
         BlockPos surface = DownfallFeatureSupport.surfaceOrigin(level, context.origin(), random);
         BlockPos origin = surface.below(3 + random.nextInt(8));
 
-        if (level.isOutsideBuildHeight(origin) || !DownfallFeatureSupport.hasSolidAnchor(level, surface.below(), 3)) {
+        if (level.isOutsideBuildHeight(origin) || !DownfallFeatureSupport.hasSolidAnchor(level, surface.below(), Direction.UP, 3)) {
             return false;
         }
 

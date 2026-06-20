@@ -1,54 +1,34 @@
 {
   "type": "minecraft:mul",
-  "argument1": -0.24,
+  "argument1": -0.65,
   "argument2": {
-    "type": "minecraft:spline",
-    "spline": {
-      "coordinate": {
-        "type": "minecraft:abs",
-        "argument": {
-          "type": "minecraft:add",
-          "argument1": {
-            "type": "minecraft:noise",
-            "noise": "aba_bosses:downfall_lattice",
-            "xz_scale": 4.6,
-            "y_scale": 1.1
-          },
+    "type": "minecraft:range_choice",
+    "input": {
+      "type": "minecraft:abs",
+      "argument": {
+        "type": "minecraft:add",
+        "argument1": {
+          "type": "minecraft:noise",
+          "noise": "aba_bosses:downfall_lattice",
+          "xz_scale": 5.25,
+          "y_scale": 2.8
+        },
+        "argument2": {
+          "type": "minecraft:mul",
+          "argument1": 0.25,
           "argument2": {
-            "type": "minecraft:mul",
-            "argument1": 0.25,
-            "argument2": {
-              "type": "minecraft:y_clamped_gradient",
-              "from_y": 16,
-              "to_y": 208,
-              "from_value": -1.0,
-              "to_value": 1.0
-            }
+            "type": "minecraft:y_clamped_gradient",
+            "from_y": 16,
+            "to_y": 208,
+            "from_value": -1.0,
+            "to_value": 1.0
           }
         }
-      },
-      "points": [
-        {
-          "location": 0.0,
-          "value": 1.0,
-          "derivative": 0.0
-        },
-        {
-          "location": 0.055,
-          "value": 0.72,
-          "derivative": -1.8
-        },
-        {
-          "location": 0.13,
-          "value": 0.12,
-          "derivative": -1.0
-        },
-        {
-          "location": 0.24,
-          "value": 0.0,
-          "derivative": 0.0
-        }
-      ]
-    }
+      }
+    },
+    "min_inclusive": 0.0,
+    "max_exclusive": 0.075,
+    "when_in_range": 1.0,
+    "when_out_of_range": 0.0
   }
 }

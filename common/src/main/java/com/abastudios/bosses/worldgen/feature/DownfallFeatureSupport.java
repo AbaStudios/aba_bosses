@@ -19,20 +19,21 @@ final class DownfallFeatureSupport {
         return new BlockPos(x, y, z);
     }
 
-    static boolean hasSolidAnchor(WorldGenLevel level, BlockPos origin, int radius) {
+    static boolean hasSolidAnchor(WorldGenLevel level, BlockPos origin, Direction direction, int radius) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
-        for (Direction direction : Direction.values()) {
-            for (int distance = 1; distance <= radius; distance++) {
-                mutable.setWithOffset(
-                        origin,
-                        direction.getStepX() * distance,
-                        direction.getStepY() * distance,
-                        direction.getStepZ() * distance
-                );
-                if (level.getBlockState(mutable).isSolidRender(level, mutable)) {
-                    return true;
-                }
+        for (int distance = 1; distance <= radius; distance++) {
+            mutable.setWithOffset(
+                    origin,
+                    direction.getStepX() * distance,
+                    direction.getStepY() * distance,
+                    direction.getStepZ() * distance
+            );
+            if (level.isOutsideBuildHeight(mutable)) {
+                continue;
+            }
+            if (level.getBlockState(mutable).isSolidRender(level, mutable)) {
+                return true;
             }
         }
 
@@ -52,7 +53,7 @@ final class DownfallFeatureSupport {
             return false;
         }
 
-        level.setBlock(pos, state, 3);
+        level.setBlock(pos, state, 2);
         return true;
     }
 

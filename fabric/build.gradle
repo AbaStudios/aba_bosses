@@ -25,12 +25,32 @@ configurations {
 }
 
 dependencies {
+    def isDedicatedServerRun = gradle.startParameter.taskNames.any { it.toLowerCase(Locale.ROOT).contains('runserver') }
     modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
     modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
     modImplementation "me.fzzyhmstrs:fzzy_config:$rootProject.fzzy_config_version"
+    modLocalRuntime "maven.modrinth:sodium:$rootProject.sodium_fabric_version"
+    modLocalRuntime "maven.modrinth:mixintrace:$rootProject.mixintrace_fabric_version"
+    modLocalRuntime "maven.modrinth:yeetus-experimentus:${rootProject.yeetus_experimentus_version}-fabric"
+    // Fabric Lodestone 1.21.1 loads a client particle class from main init on dedicated servers.
+    def lodestoneDependency = isDedicatedServerRun ? 'modCompileOnly' : 'modImplementation'
+    add(lodestoneDependency, "maven.modrinth:lodestonelib:$rootProject.lodestone_fabric_version")
+    [
+        'accessors',
+        'base',
+        'blocks',
+        'core',
+        'data',
+        'extensions',
+        'lazy_registration',
+        'models',
+        'model_data',
+    ].each {
+        add(lodestoneDependency, "io.github.fabricators_of_create.Porting-Lib:$it:$rootProject.porting_lib_version")
+    }
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')

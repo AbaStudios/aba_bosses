@@ -2,6 +2,7 @@ package com.abastudios.bosses.worldgen.feature;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -30,7 +31,7 @@ public final class SuspendedRingFeature extends Feature<NoneFeatureConfiguration
         BlockPos generationOrigin = context.origin();
         BlockPos origin = DownfallFeatureSupport.surfaceOrigin(level, context.origin(), random).above(8 + random.nextInt(18));
 
-        if (level.isOutsideBuildHeight(origin) || !DownfallFeatureSupport.hasSolidAnchor(level, origin.below(12), 16)) {
+        if (level.isOutsideBuildHeight(origin) || !DownfallFeatureSupport.hasSolidAnchor(level, origin.below(12), Direction.DOWN, 16)) {
             return false;
         }
 
