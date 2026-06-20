@@ -66,14 +66,7 @@ public final class BlackHolePostEffect {
 
         if (trace.selectedBlackHoleId != lastSelectedBlackHoleId) {
             lastSelectedBlackHoleId = trace.selectedBlackHoleId;
-            AbaBosses.LOGGER.info(
-                    "Black hole post effect selected id={} worldScale={} occlusionRadius={} cameraLocal={} cameraForwardLocal={}",
-                    trace.selectedBlackHoleId,
-                    trace.projection.worldScale,
-                    trace.projection.occlusionRadius,
-                    trace.projection.cameraLocal,
-                    trace.projection.cameraForwardLocal
-            );
+            AbaBosses.LOGGER.info("Black hole post effect selected id={} center=({}, {}) radius={} worldScale={}", trace.selectedBlackHoleId, trace.projection.centerX, trace.projection.centerY, trace.projection.shadowRadius, trace.projection.worldScale);
         }
 
         PostChain chain = getOrCreatePostChain(minecraft);
@@ -83,6 +76,9 @@ public final class BlackHolePostEffect {
 
         Projection projection = trace.projection;
         chain.setUniform("BlackHoleActive", 1.0f);
+        chain.setUniform("BlackHoleCenterX", projection.centerX);
+        chain.setUniform("BlackHoleCenterY", projection.centerY);
+        chain.setUniform("BlackHoleShadowRadiusPixels", projection.shadowRadius);
         setVec3(chain, "BlackHoleCameraLocal", projection.cameraLocal);
         setVec3(chain, "BlackHoleCameraRightLocal", projection.cameraRightLocal);
         setVec3(chain, "BlackHoleCameraUpLocal", projection.cameraUpLocal);
@@ -140,6 +136,26 @@ public final class BlackHolePostEffect {
         float sizeScale = blackHole.getSizeScale();
         float shadowRadiusBlocks = BlackHoleEntity.SHADOW_RADIUS * sizeScale;
         float effectRadiusBlocks = BlackHoleEntity.EFFECT_RADIUS * sizeScale;
+        ProjectedPoint center = project(position.subtract(cameraPosition), camera, projectionMatrix, targetWidth, targetHeight);
+        if (center == null) {
+            logProjectionState(blackHole, "center_not_projected", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
+            return null;
+        }
+
+        Vec3 edgePosition = position.add(new Vec3(camera.getUpVector()).scale(shadowRadiusBlocks));
+        ProjectedPoint edge = project(edgePosition.subtract(cameraPosition), camera, projectionMatrix, targetWidth, targetHeight);
+        if (edge == null) {
+            logProjectionState(blackHole, "edge_not_projected", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
+            return null;
+        }
+
+        float shadowRadius = Math.max(24.0f * sizeScale, distance(center.x, center.y, edge.x, edge.y));
+        float effectRadius = shadowRadius * (effectRadiusBlocks / shadowRadiusBlocks);
+        if (center.x + effectRadius < 0.0f || center.x - effectRadius > targetWidth || center.y + effectRadius < 0.0f || center.y - effectRadius > targetHeight) {
+            logProjectionState(blackHole, "effect_out_of_view", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
+            return null;
+        }
+
         LocalBasis localBasis = createLocalBasis(blackHole, partialTick);
         Vec3 cameraLocal = toLocal(cameraPosition.subtract(position), localBasis);
         Vec3 cameraRightLocal = toLocal(new Vec3(camera.getLeftVector()).reverse(), localBasis);
@@ -154,6 +170,9 @@ public final class BlackHolePostEffect {
         logProjectionState(blackHole, "projected", position, sizeScale, shadowRadiusBlocks, effectRadiusBlocks);
 
         return new Projection(
+                center.x,
+                center.y,
+                shadowRadius,
                 cameraLocal,
                 cameraRightLocal,
                 cameraUpLocal,
@@ -251,6 +270,12 @@ public final class BlackHolePostEffect {
         }
     }
 
+    private static float distance(float x0, float y0, float x1, float y1) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
     private static LocalBasis createLocalBasis(BlackHoleEntity blackHole, float partialTick) {
         float yaw = blackHole.getViewYRot(partialTick);
         float pitch = blackHole.getViewXRot(partialTick);
@@ -304,6 +329,9 @@ public final class BlackHolePostEffect {
     }
 
     private record Projection(
+            float centerX,
+            float centerY,
+            float shadowRadius,
             Vec3 cameraLocal,
             Vec3 cameraRightLocal,
             Vec3 cameraUpLocal,

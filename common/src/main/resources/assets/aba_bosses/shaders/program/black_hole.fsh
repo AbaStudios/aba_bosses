@@ -8,6 +8,9 @@ uniform sampler2D DepthSampler;
 
 uniform vec2 OutSize;
 uniform float BlackHoleActive;
+uniform float BlackHoleCenterX;
+uniform float BlackHoleCenterY;
+uniform float BlackHoleShadowRadiusPixels;
 uniform float BlackHoleCameraLocalX;
 uniform float BlackHoleCameraLocalY;
 uniform float BlackHoleCameraLocalZ;
@@ -48,7 +51,6 @@ const float DISK_CONTRAST = 0.5;
 const float EXPOSURE = 1.2;
 
 const float DILATION_MIN = 0.2;
-const float VIEW_TANGENCY_FADE = 1.25;
 
 #define N_STEPS 36
 
@@ -137,7 +139,7 @@ float blackHoleFrontDistance(vec3 cameraPosition, vec3 ray, vec3 forward) {
         return max(closestT - sqrt(radius2 - closestDistance2), 0.0) * forwardScale;
     }
 
-    return -1.0;
+    return max(closestT - radius, 0.0) * forwardScale;
 }
 
 bool isOccludedByScene(vec2 uv, vec3 cameraPosition, vec3 ray, vec3 forward) {
@@ -182,9 +184,20 @@ void main() {
         return;
     }
 
-
     vec2 res = OutSize;
     vec2 uv = texCoord;
+    float aspect = res.x / res.y;
+    vec2 center = vec2(BlackHoleCenterX, BlackHoleCenterY) / res;
+
+    float rh = max(BlackHoleShadowRadiusPixels / res.y, 1.0e-4);
+
+    vec2 p = (uv - center) * vec2(aspect, 1.0);
+    float plen = length(p);
+    float window = exp(-pow(plen / (7.0 * rh), 2.0));
+    if (window < 0.0006) {
+        fragColor = original;
+        return;
+    }
 
     float t = BlackHoleTime;
     float rin = max(DISK_INNER, 1.6);
@@ -198,13 +211,15 @@ void main() {
     vec3 cameraForward = cameraForwardLocal();
     vec3 cameraPosition = cameraLocal();
     vec3 ray = fragmentRayLocal(uv, cameraRight, cameraUp, cameraForward);
+    if (isOccludedByScene(uv, cameraPosition, ray, cameraForward)) {
+        fragColor = original;
+        return;
+    }
 
     vec3 traceCameraPosition = cameraPosition / max(BlackHoleWorldScale, 1.0e-4);
     float cameraDistance = length(traceCameraPosition);
     float closestT = -dot(traceCameraPosition, ray);
-    // Fade across tangent rays; a hard closestT cutoff creates screen-space half-plane edges.
-    float viewWindow = smoothstep(-VIEW_TANGENCY_FADE, VIEW_TANGENCY_FADE, closestT);
-    if (viewWindow < 0.0006) {
+    if (closestT <= 0.0) {
         fragColor = original;
         return;
     }
@@ -213,17 +228,6 @@ void main() {
     vec3 angularMomentum = cross(traceCameraPosition, ray);
     float h2 = dot(angularMomentum, angularMomentum);
     float b = sqrt(max(h2, 0.0));
-    float window = exp(-pow(max(b - bmax, 0.0) / max(bmax * 2.4, 1.0), 2.0)) * viewWindow;
-    float windowCutoff = 0.0006 * clamp(720.0 / max(min(res.x, res.y), 1.0), 0.5, 2.0);
-    if (b > bmax && window < windowCutoff) {
-        fragColor = original;
-        return;
-    }
-
-    if (isOccludedByScene(uv, cameraPosition, ray, cameraForward)) {
-        fragColor = original;
-        return;
-    }
 
     if (b >= bmax) {
         vec3 bendDirection = normalize(closestApproach);
@@ -341,5 +345,5 @@ void main() {
     }
 
     vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
-    fragColor = vec4(mix(original.rgb, col, viewWindow), original.a);
+    fragColor = vec4(col, original.a);
 }

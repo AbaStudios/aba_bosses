@@ -32,6 +32,24 @@
       "values": [0]
     },
     {
+      "name": "BlackHoleCenterX",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleCenterY",
+      "type": "float",
+      "count": 1,
+      "values": [0]
+    },
+    {
+      "name": "BlackHoleShadowRadiusPixels",
+      "type": "float",
+      "count": 1,
+      "values": [1]
+    },
+    {
       "name": "BlackHoleCameraLocalX",
       "type": "float",
       "count": 1,
