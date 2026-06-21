@@ -224,6 +224,7 @@ void main() {
     }
 
     float forwardScale = max(dot(ray, cameraForward), 1.0e-4);
+    float radius = max(BlackHoleOcclusionRadius, 0.0);
     float closestDepth = max((closestT - rout) * BlackHoleWorldScale * forwardScale, 0.0);
     float z = sceneForwardDistance(uv);
     if (z < closestDepth - 0.05) {
@@ -231,8 +232,9 @@ void main() {
         return;
     }
 
-    float range = rout * BlackHoleWorldScale * forwardScale;
-    float u = clamp((z - closestDepth) / max(range, 1.0e-4), 0.0, 1.0);
+    float occlusionDepth = max((closestT - radius) * BlackHoleWorldScale * forwardScale, 0.0);
+    float range = radius * BlackHoleWorldScale * forwardScale;
+    float u = clamp((z - occlusionDepth) / max(range, 1.0e-4), 0.0, 1.0);
     float transition = smoothstep(0.0, 1.0, u);
 
     vec3 closestApproach = traceCameraPosition + ray * closestT;
@@ -245,7 +247,12 @@ void main() {
         float deflection = (2.0 / max(b, 1.0e-3)) * window * shield * transition;
         vec3 sourceRay = normalize(ray - bendDirection * deflection);
         vec2 suv = mirrorUV(rayToUv(sourceRay, cameraRight, cameraUp, cameraForward));
-        vec3 term = texture(DiffuseSampler, suv).rgb;
+
+        float zSample = sceneForwardDistance(suv);
+        float uSample = clamp((zSample - occlusionDepth) / max(range, 1.0e-4), 0.0, 1.0);
+        float sampleTransition = smoothstep(0.0, 1.0, uSample);
+
+        vec3 term = mix(original.rgb, texture(DiffuseSampler, suv).rgb, sampleTransition);
         fragColor = vec4(term + stars(sourceRay) * STAR_GAIN * window * shield * transition, original.a);
         return;
     }
@@ -369,16 +376,22 @@ void main() {
             vec2 suv = mirrorUV(mix(uv, warpedUv, window * shield * transition));
             float toward = smoothstep(0.02, 0.35, forward);
             vec3 sourceRay = fragmentRayLocal(suv, cameraRight, cameraUp, cameraForward);
-            bg += texture(DiffuseSampler, suv).rgb * toward;
+
+            float zSample = sceneForwardDistance(suv);
+            float uSample = clamp((zSample - occlusionDepth) / max(range, 1.0e-4), 0.0, 1.0);
+            float sampleTransition = smoothstep(0.0, 1.0, uSample);
+
+            vec3 sampledColor = mix(original.rgb, texture(DiffuseSampler, suv).rgb, sampleTransition);
+            bg += sampledColor * toward;
         }
     }
 
-    float occlusionDepth = hitDepth;
-    if (occlusionDepth > 1.0e19) {
-        occlusionDepth = closestDepth;
+    float occlusionDepthSlow = hitDepth;
+    if (occlusionDepthSlow > 1.0e19) {
+        occlusionDepthSlow = occlusionDepth;
     }
 
-    if (sceneForwardDistance(uv) < occlusionDepth - 0.05) {
+    if (sceneForwardDistance(uv) < occlusionDepthSlow - 0.05) {
         fragColor = original;
     } else {
         vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
