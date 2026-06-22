@@ -260,6 +260,18 @@ void main() {
     vec3 x = traceCameraPosition;
     vec3 v = ray;
 
+    float rStart = rout + 8.0;
+    float rStart2 = rStart * rStart;
+    if (cameraDistance > rStart && h2 < rStart2) {
+        float d = dot(x, v);
+        if (d < 0.0) {
+            float t_advance = -d - sqrt(rStart2 - h2);
+            if (t_advance > 0.0) {
+                x += v * t_advance;
+            }
+        }
+    }
+
     vec3 n = vec3(0.0, 1.0, 0.0);
     vec3 e2 = vec3(0.0, 0.0, 1.0);
     float sdir = DISK_SPEED < 0.0 ? -1.0 : 1.0;
@@ -272,9 +284,9 @@ void main() {
     float sPrev = dot(x, n);
     vec3 xPrev = x;
     vec3 vPrev = v;
-    float maxTraceRadius = max(cameraDistance + rout + 8.0, 20.0);
+    float maxTraceRadius = max(rStart, 20.0);
     float maxTraceRadius2 = maxTraceRadius * maxTraceRadius;
-    float escapeRadius2 = max(cameraDistance * cameraDistance, maxTraceRadius2 * 0.35);
+    float escapeRadius2 = max(rStart2, maxTraceRadius2 * 0.35);
 
     int crossingCount = 0;
 
