@@ -85,8 +85,7 @@ public final class BlackHoleEntity extends Entity {
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
-        double range = 128.0;
-        return distance < range * range;
+        return true;
     }
 
     /**

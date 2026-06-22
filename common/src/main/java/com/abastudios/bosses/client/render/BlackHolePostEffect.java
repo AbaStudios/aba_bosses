@@ -196,21 +196,22 @@ public final class BlackHolePostEffect {
         Vec3 right = new Vec3(camera.getLeftVector()).reverse();
         Vec3 up = new Vec3(camera.getUpVector());
         Vec3 forward = new Vec3(camera.getLookVector());
-        double forwardDistance = cameraRelativePosition.dot(forward);
-        if (forwardDistance <= 1.0e-4) {
-            return null;
-        }
+        double forwardDistance = Math.max(Math.abs(cameraRelativePosition.dot(forward)), 1.0e-4);
 
         double viewX = cameraRelativePosition.dot(right);
         double viewY = cameraRelativePosition.dot(up);
         Vector4f clip = new Vector4f((float) viewX, (float) viewY, (float) -forwardDistance, 1.0f);
         projectionMatrix.transform(clip);
-        if (clip.w() <= 0.0f) {
+        float clipW = clip.w();
+        if (!Float.isFinite(clipW)) {
             return null;
         }
+        if (Math.abs(clipW) < 1.0e-4f) {
+            clipW = clipW < 0.0f ? -1.0e-4f : 1.0e-4f;
+        }
 
-        float ndcX = clip.x() / clip.w();
-        float ndcY = clip.y() / clip.w();
+        float ndcX = clip.x() / clipW;
+        float ndcY = clip.y() / clipW;
         if (!Float.isFinite(ndcX) || !Float.isFinite(ndcY)) {
             return null;
         }
@@ -218,7 +219,7 @@ public final class BlackHolePostEffect {
         return new ProjectedPoint(
                 (ndcX * 0.5f + 0.5f) * targetWidth,
                 (ndcY * 0.5f + 0.5f) * targetHeight,
-                clip.z() / clip.w() * 0.5f + 0.5f
+                clip.z() / clipW * 0.5f + 0.5f
         );
     }
 
