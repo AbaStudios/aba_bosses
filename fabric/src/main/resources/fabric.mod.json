@@ -33,6 +33,7 @@
     "fzzy_config": ">=0.7.6"
   },
   "suggests": {
+    "modmenu": ">=11.0.4",
     "simplytooltips": ">=0.1.3"
   }
 }
