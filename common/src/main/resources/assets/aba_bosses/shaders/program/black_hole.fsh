@@ -52,7 +52,7 @@ const float EXPOSURE = 1.2;
 
 const float DILATION_MIN = 0.2;
 
-#define N_STEPS 36
+#define N_STEPS 64
 
 float hash21(vec2 p) {
     p = fract(p * vec2(234.34, 435.345));
@@ -122,6 +122,24 @@ float sceneForwardDistance(vec2 uv) {
     }
 
     return max(BlackHoleDepthB / denom, 0.0);
+}
+
+float weakDeflectionPrimitive(float tau, float b2) {
+    float tau2 = tau * tau;
+    float radius = sqrt(b2 + tau2);
+    return tau * (3.0 * b2 + 2.0 * tau2) / (3.0 * b2 * b2 * radius * radius * radius);
+}
+
+float finiteWeakDeflection(float b, float closestT, float escapeRadius) {
+    float bSafe = max(b, 1.0e-3);
+    float b2 = bSafe * bSafe;
+    float tauStart = -closestT;
+    float tauEnd = sqrt(max(escapeRadius * escapeRadius - b2, 0.0));
+    float integral = max(
+            weakDeflectionPrimitive(tauEnd, b2) - weakDeflectionPrimitive(tauStart, b2),
+            0.0
+    );
+    return 1.5 * b2 * bSafe * integral;
 }
 
 float blackHoleFrontDistance(vec3 cameraPosition, vec3 ray, vec3 forward) {
@@ -241,10 +259,12 @@ void main() {
     vec3 angularMomentum = cross(traceCameraPosition, ray);
     float h2 = dot(angularMomentum, angularMomentum);
     float b = sqrt(max(h2, 0.0));
+    float traceEscapeRadius = max(cameraDistance, bmax + 3.0);
 
     if (b >= bmax) {
         vec3 bendDirection = normalize(closestApproach);
-        float deflection = (2.0 / max(b, 1.0e-3)) * window * shield * transition;
+        float deflection = finiteWeakDeflection(b, closestT, traceEscapeRadius)
+                * window * shield * transition;
         vec3 sourceRay = normalize(ray - bendDirection * deflection);
         vec2 suv = mirrorUV(rayToUv(sourceRay, cameraRight, cameraUp, cameraForward));
 
@@ -260,18 +280,6 @@ void main() {
     vec3 x = traceCameraPosition;
     vec3 v = ray;
 
-    float rStart = rout + 8.0;
-    float rStart2 = rStart * rStart;
-    if (cameraDistance > rStart && h2 < rStart2) {
-        float d = dot(x, v);
-        if (d < 0.0) {
-            float t_advance = -d - sqrt(rStart2 - h2);
-            if (t_advance > 0.0) {
-                x += v * t_advance;
-            }
-        }
-    }
-
     vec3 n = vec3(0.0, 1.0, 0.0);
     vec3 e2 = vec3(0.0, 0.0, 1.0);
     float sdir = DISK_SPEED < 0.0 ? -1.0 : 1.0;
@@ -284,9 +292,10 @@ void main() {
     float sPrev = dot(x, n);
     vec3 xPrev = x;
     vec3 vPrev = v;
-    float maxTraceRadius = max(rStart, 20.0);
+    float maxStep = max(1.8, traceEscapeRadius / 18.0);
+    float maxTraceRadius = traceEscapeRadius + maxStep * 2.0;
     float maxTraceRadius2 = maxTraceRadius * maxTraceRadius;
-    float escapeRadius2 = max(rStart2, maxTraceRadius2 * 0.35);
+    float escapeRadius2 = traceEscapeRadius * traceEscapeRadius;
 
     int crossingCount = 0;
 
@@ -304,7 +313,7 @@ void main() {
         }
 
         float r = sqrt(r2);
-        float dt = clamp(0.18 * r, 0.04, 1.8);
+        float dt = clamp(0.18 * r, 0.04, maxStep);
         vec3 a = -1.5 * h2 * x / (r2 * r2 * r);
         v += a * (0.5 * dt);
         x += v * dt;
