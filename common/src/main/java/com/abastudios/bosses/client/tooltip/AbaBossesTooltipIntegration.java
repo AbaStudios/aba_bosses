@@ -14,5 +14,6 @@ public final class AbaBossesTooltipIntegration {
      */
     public static void register() {
         TooltipProviderRegistry.register(new DownfallShardTooltipProvider(), 100);
+        TooltipProviderRegistry.register(new WarpglassWandTooltipProvider(), 100);
     }
 }

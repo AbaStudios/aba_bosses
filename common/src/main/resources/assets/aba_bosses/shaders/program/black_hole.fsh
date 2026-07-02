@@ -27,7 +27,6 @@ uniform float BlackHoleProjectionScaleX;
 uniform float BlackHoleProjectionScaleY;
 uniform float BlackHoleDepthA;
 uniform float BlackHoleDepthB;
-uniform float BlackHoleOcclusionRadius;
 uniform float BlackHoleWorldScale;
 uniform float BlackHoleTime;
 
@@ -73,8 +72,17 @@ float vnoiseWrapY(vec2 p, float perY) {
     );
 }
 
-vec2 mirrorUV(vec2 u) {
-    return 1.0 - abs(1.0 - mod(u, 2.0));
+float screenUvMask(vec2 uv) {
+    const float EDGE_FADE = 0.01;
+    vec2 lower = smoothstep(vec2(-EDGE_FADE), vec2(0.0), uv);
+    vec2 upper = 1.0 - smoothstep(vec2(1.0), vec2(1.0 + EDGE_FADE), uv);
+    return lower.x * lower.y * upper.x * upper.y;
+}
+
+vec3 sampleScreenColor(vec2 uv, vec3 fallback) {
+    vec2 clampedUv = clamp(uv, vec2(0.0), vec2(1.0));
+    vec3 sampled = texture(DiffuseSampler, clampedUv).rgb;
+    return mix(fallback, sampled, screenUvMask(uv));
 }
 
 vec3 cameraLocal() {
@@ -142,34 +150,6 @@ float finiteWeakDeflection(float b, float closestT, float escapeRadius) {
     return 1.5 * b2 * bSafe * integral;
 }
 
-float blackHoleFrontDistance(vec3 cameraPosition, vec3 ray, vec3 forward) {
-    float closestT = -dot(cameraPosition, ray);
-    if (closestT <= 0.0) {
-        return -1.0;
-    }
-
-    float cameraDistance2 = dot(cameraPosition, cameraPosition);
-    float closestDistance2 = max(cameraDistance2 - closestT * closestT, 0.0);
-    float radius = max(BlackHoleOcclusionRadius, 0.0);
-    float radius2 = radius * radius;
-    float forwardScale = max(dot(ray, forward), 1.0e-4);
-    if (closestDistance2 <= radius2) {
-        return max(closestT - sqrt(radius2 - closestDistance2), 0.0) * forwardScale;
-    }
-
-    return -1.0;
-}
-
-bool isOccludedByScene(vec2 uv, vec3 cameraPosition, vec3 ray, vec3 forward) {
-    float blackHoleDistance = blackHoleFrontDistance(cameraPosition, ray, forward);
-    if (blackHoleDistance <= 0.0) {
-        return false;
-    }
-
-    float depthBias = max(0.08, BlackHoleOcclusionRadius * 0.03);
-    return sceneForwardDistance(uv) < blackHoleDistance - depthBias;
-}
-
 vec3 blackbody(float T) {
     float t = clamp(T, 1500.0, 40000.0) / 100.0;
     float r = t <= 66.0 ? 1.0 : clamp(1.292936 * pow(t - 60.0, -0.1332047), 0.0, 1.0);
@@ -201,7 +181,6 @@ void main() {
         fragColor = original;
         return;
     }
-
     vec2 res = OutSize;
     vec2 uv = texCoord;
     float aspect = res.x / res.y;
@@ -236,24 +215,7 @@ void main() {
     vec3 cameraForward = cameraForwardLocal();
     vec3 ray = fragmentRayLocal(uv, cameraRight, cameraUp, cameraForward);
     float closestT = -dot(traceCameraPosition, ray);
-    if (closestT + rout <= 0.0) {
-        fragColor = original;
-        return;
-    }
-
     float forwardScale = max(dot(ray, cameraForward), 1.0e-4);
-    float radius = max(BlackHoleOcclusionRadius, 0.0);
-    float closestDepth = max((closestT - rout) * BlackHoleWorldScale * forwardScale, 0.0);
-    float z = sceneForwardDistance(uv);
-    if (z < closestDepth - 0.05) {
-        fragColor = original;
-        return;
-    }
-
-    float occlusionDepth = max((closestT - radius) * BlackHoleWorldScale * forwardScale, 0.0);
-    float range = radius * BlackHoleWorldScale * forwardScale;
-    float u = clamp((z - occlusionDepth) / max(range, 1.0e-4), 0.0, 1.0);
-    float transition = smoothstep(0.0, 1.0, u);
 
     vec3 closestApproach = traceCameraPosition + ray * closestT;
     vec3 angularMomentum = cross(traceCameraPosition, ray);
@@ -264,16 +226,12 @@ void main() {
     if (b >= bmax) {
         vec3 bendDirection = normalize(closestApproach);
         float deflection = finiteWeakDeflection(b, closestT, traceEscapeRadius)
-                * window * shield * transition;
+                * window * shield;
         vec3 sourceRay = normalize(ray - bendDirection * deflection);
-        vec2 suv = mirrorUV(rayToUv(sourceRay, cameraRight, cameraUp, cameraForward));
+        vec2 suv = rayToUv(sourceRay, cameraRight, cameraUp, cameraForward);
 
-        float zSample = sceneForwardDistance(suv);
-        float uSample = clamp((zSample - occlusionDepth) / max(range, 1.0e-4), 0.0, 1.0);
-        float sampleTransition = smoothstep(0.0, 1.0, uSample);
-
-        vec3 term = mix(original.rgb, texture(DiffuseSampler, suv).rgb, sampleTransition);
-        fragColor = vec4(term + stars(sourceRay) * STAR_GAIN * window * shield * transition, original.a);
+        vec3 term = sampleScreenColor(suv, original.rgb);
+        fragColor = vec4(term + stars(sourceRay) * STAR_GAIN * window * shield, original.a);
         return;
     }
 
@@ -288,7 +246,6 @@ void main() {
     vec3 emitc = vec3(0.0);
     float trans = 1.0;
     bool captured = false;
-    float hitDepth = 1.0e20;
     float sPrev = dot(x, n);
     vec3 xPrev = x;
     vec3 vPrev = v;
@@ -338,7 +295,6 @@ void main() {
                     vec3 diskRelPos = (xc - traceCameraPosition) * BlackHoleWorldScale;
                     float diskDepth = dot(diskRelPos, cameraForward);
                     if (sceneForwardDistance(uv) > diskDepth - 0.05) {
-                        hitDepth = min(hitDepth, diskDepth);
                         float band = smoothstep(rin, rin * 1.25, rc)
                                 * (1.0 - smoothstep(rout * 0.70, rout, rc));
 
@@ -380,9 +336,7 @@ void main() {
 
     if (captured) {
         float horizonDepth = closestT * BlackHoleWorldScale * forwardScale;
-        if (sceneForwardDistance(uv) > horizonDepth - 0.05) {
-            hitDepth = min(hitDepth, horizonDepth);
-        } else {
+        if (sceneForwardDistance(uv) <= horizonDepth - 0.05) {
             captured = false;
         }
     }
@@ -390,32 +344,17 @@ void main() {
     vec3 bg = vec3(0.0);
     if (!captured) {
         vec3 d = normalize(v);
-        bg += stars(d) * STAR_GAIN * window * shield * transition;
+        bg += stars(d) * STAR_GAIN * window * shield;
         float forward = dot(d, cameraForward);
         if (forward > 0.02) {
             vec2 warpedUv = rayToUv(d, cameraRight, cameraUp, cameraForward);
-            vec2 suv = mirrorUV(mix(uv, warpedUv, window * shield * transition));
+            vec2 suv = mix(uv, warpedUv, window * shield);
             float toward = smoothstep(0.02, 0.35, forward);
-            vec3 sourceRay = fragmentRayLocal(suv, cameraRight, cameraUp, cameraForward);
-
-            float zSample = sceneForwardDistance(suv);
-            float uSample = clamp((zSample - occlusionDepth) / max(range, 1.0e-4), 0.0, 1.0);
-            float sampleTransition = smoothstep(0.0, 1.0, uSample);
-
-            vec3 sampledColor = mix(original.rgb, texture(DiffuseSampler, suv).rgb, sampleTransition);
+            vec3 sampledColor = sampleScreenColor(suv, original.rgb);
             bg += sampledColor * toward;
         }
     }
 
-    float occlusionDepthSlow = hitDepth;
-    if (occlusionDepthSlow > 1.0e19) {
-        occlusionDepthSlow = occlusionDepth;
-    }
-
-    if (sceneForwardDistance(uv) < occlusionDepthSlow - 0.05) {
-        fragColor = original;
-    } else {
-        vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
-        fragColor = vec4(col, original.a);
-    }
+    vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
+    fragColor = vec4(col, original.a);
 }

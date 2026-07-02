@@ -146,12 +146,6 @@
       "values": [-1]
     },
     {
-      "name": "BlackHoleOcclusionRadius",
-      "type": "float",
-      "count": 1,
-      "values": [2.5980762]
-    },
-    {
       "name": "BlackHoleWorldScale",
       "type": "float",
       "count": 1,

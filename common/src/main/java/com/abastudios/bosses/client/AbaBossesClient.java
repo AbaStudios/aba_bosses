@@ -1,6 +1,7 @@
 package com.abastudios.bosses.client;
 
 import com.abastudios.bosses.client.render.BlackHoleRenderer;
+import com.abastudios.bosses.client.test.ClientTestScriptRunner;
 import com.abastudios.bosses.client.tooltip.AbaBossesTooltipIntegration;
 import com.abastudios.bosses.client.vfx.LightningLaserVfx;
 import com.abastudios.bosses.registry.AbaBossesEntityTypes;
@@ -20,6 +21,8 @@ public final class AbaBossesClient {
     public static void init() {
         EntityRendererRegistry.register(AbaBossesEntityTypes.BLACK_HOLE, BlackHoleRenderer::new);
         LightningLaserVfx.init();
+        WarpglassThirdEyeController.register();
+        ClientTestScriptRunner.init();
 
         if (Platform.isModLoaded("simplytooltips")) {
             AbaBossesTooltipIntegration.register();

@@ -87,7 +87,6 @@ public final class BlackHolePostEffect {
         chain.setUniform("BlackHoleProjectionScaleY", projection.projectionScaleY);
         chain.setUniform("BlackHoleDepthA", projection.depthA);
         chain.setUniform("BlackHoleDepthB", projection.depthB);
-        chain.setUniform("BlackHoleOcclusionRadius", projection.occlusionRadius);
         chain.setUniform("BlackHoleWorldScale", projection.worldScale);
         chain.setUniform("BlackHoleTime", (minecraft.level.getGameTime() + partialTick) / 20.0f);
         chain.process(partialTick);
@@ -187,7 +186,6 @@ public final class BlackHolePostEffect {
                 projectionMatrix.m11(),
                 depthMapping.a,
                 depthMapping.b,
-                shadowRadiusBlocks,
                 sizeScale
         );
     }
@@ -347,7 +345,6 @@ public final class BlackHolePostEffect {
             float projectionScaleY,
             float depthA,
             float depthB,
-            float occlusionRadius,
             float worldScale
     ) {
     }

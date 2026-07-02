@@ -1,11 +1,14 @@
 package com.abastudios.bosses;
 
 import com.abastudios.bosses.config.AbaBossesConfig;
+import com.abastudios.bosses.item.WarpglassDash;
+import com.abastudios.bosses.registry.AbaBossesDensityFunctions;
 import com.abastudios.bosses.registry.AbaBossesEntityTypes;
 import com.abastudios.bosses.registry.AbaBossesFeatures;
 import com.abastudios.bosses.registry.AbaBossesGameRules;
 import com.abastudios.bosses.registry.AbaBossesItems;
 import com.abastudios.bosses.registry.AbaBossesTabs;
+import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +30,13 @@ public final class AbaBosses {
     public static void init() {
         AbaBossesConfig.init();
         AbaBossesGameRules.register();
+        AbaBossesDensityFunctions.register();
         AbaBossesEntityTypes.register();
         AbaBossesFeatures.register();
         AbaBossesTabs.register();
         AbaBossesItems.register();
+
+        TickEvent.PLAYER_POST.register(WarpglassDash::tick);
     }
 
     /**

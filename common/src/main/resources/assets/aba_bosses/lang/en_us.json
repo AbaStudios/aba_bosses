@@ -4,6 +4,7 @@
   "aba_bosses.config.enableDownfallShardTooltips": "Enable Downfall Shard Simply Tooltips",
   "aba_bosses.config.enableDownfallShardTooltips.desc": "Use Simply Tooltips rendering for the Downfall Shard when Simply Tooltips is loaded.",
   "item.aba_bosses.downfall_shard": "Downfall Shard",
+  "item.aba_bosses.warpglass_wand": "Warpglass Wand",
   "entity.aba_bosses.black_hole": "Black Hole",
   "gamerule.blackHoleGravity": "Black Hole Gravity",
   "gamerule.blackHoleGravity.description": "Scales black hole entity gravity. 0 disables the pull.",
@@ -17,5 +18,8 @@
   "tooltip.aba_bosses.downfall_shard.description": "A dormant fragment keyed to Downfall. It resists every decisive outcome. It can be used to summon the Black Hole in the Overworld. It is a rare drop from the Downfall boss. It can be used to summon the Black Hole in the Overworld. It is a rare drop from the Downfall boss. May be used to summon the Black Hole in the Overworld. It is a rare drop from the Downfall boss. In the Overworld, it can be used to summon the Black Hole. It is a rare drop from the Downfall boss. In the past, it was used to summon the Black Hole in the Overworld. It is a rare drop from the Downfall boss. Now, it can be used to summon the Black Hole in the Overworld. It is a rare drop from the Downfall boss. In the future, it may be used to summon the Black Hole in the Overworld. It is a rare drop from the Downfall boss.",
   "tooltip.aba_bosses.downfall_shard.line_1": "A dormant fragment keyed to Downfall.",
   "tooltip.aba_bosses.downfall_shard.line_2": "It resists every decisive outcome.",
-  "tooltip.aba_bosses.downfall_shard.section": "Encounter Material"
+  "tooltip.aba_bosses.downfall_shard.section": "Encounter Material",
+  "tooltip.aba_bosses.warpglass_wand.section": "Warpglass Manipulation",
+  "tooltip.aba_bosses.warpglass_wand.warp": "Right Click — Warp forward about five blocks.",
+  "tooltip.aba_bosses.warpglass_wand.third_eye": "Hold Left Click — Open a third eye to see behind yourself."
 }
