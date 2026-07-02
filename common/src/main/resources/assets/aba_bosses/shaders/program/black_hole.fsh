@@ -27,6 +27,7 @@ uniform float BlackHoleProjectionScaleX;
 uniform float BlackHoleProjectionScaleY;
 uniform float BlackHoleDepthA;
 uniform float BlackHoleDepthB;
+uniform float BlackHoleOcclusionRadius;
 uniform float BlackHoleWorldScale;
 uniform float BlackHoleTime;
 
@@ -70,19 +71,6 @@ float vnoiseWrapY(vec2 p, float perY) {
             mix(hash21(vec2(i.x, y1)), hash21(vec2(i.x + 1.0, y1)), f.x),
             f.y
     );
-}
-
-float screenUvMask(vec2 uv) {
-    const float EDGE_FADE = 0.01;
-    vec2 lower = smoothstep(vec2(-EDGE_FADE), vec2(0.0), uv);
-    vec2 upper = 1.0 - smoothstep(vec2(1.0), vec2(1.0 + EDGE_FADE), uv);
-    return lower.x * lower.y * upper.x * upper.y;
-}
-
-vec3 sampleScreenColor(vec2 uv, vec3 fallback) {
-    vec2 clampedUv = clamp(uv, vec2(0.0), vec2(1.0));
-    vec3 sampled = texture(DiffuseSampler, clampedUv).rgb;
-    return mix(fallback, sampled, screenUvMask(uv));
 }
 
 vec3 cameraLocal() {
@@ -130,6 +118,17 @@ float sceneForwardDistance(vec2 uv) {
     }
 
     return max(BlackHoleDepthB / denom, 0.0);
+}
+
+vec3 sampleScreenColorRejectForeground(vec2 uv, vec3 fallback, float occlusionDepth) {
+    if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) {
+        return vec3(0.0);
+    }
+    if (sceneForwardDistance(uv) < occlusionDepth - 0.05) {
+        return fallback;
+    }
+
+    return texture(DiffuseSampler, uv).rgb;
 }
 
 float weakDeflectionPrimitive(float tau, float b2) {
@@ -216,6 +215,12 @@ void main() {
     vec3 ray = fragmentRayLocal(uv, cameraRight, cameraUp, cameraForward);
     float closestT = -dot(traceCameraPosition, ray);
     float forwardScale = max(dot(ray, cameraForward), 1.0e-4);
+    float radius = max(BlackHoleOcclusionRadius, 0.0);
+    float occlusionDepth = max((closestT - radius) * BlackHoleWorldScale * forwardScale, 0.0);
+    if (sceneForwardDistance(uv) < occlusionDepth - 0.05) {
+        fragColor = original;
+        return;
+    }
 
     vec3 closestApproach = traceCameraPosition + ray * closestT;
     vec3 angularMomentum = cross(traceCameraPosition, ray);
@@ -230,7 +235,7 @@ void main() {
         vec3 sourceRay = normalize(ray - bendDirection * deflection);
         vec2 suv = rayToUv(sourceRay, cameraRight, cameraUp, cameraForward);
 
-        vec3 term = sampleScreenColor(suv, original.rgb);
+        vec3 term = sampleScreenColorRejectForeground(suv, original.rgb, occlusionDepth);
         fragColor = vec4(term + stars(sourceRay) * STAR_GAIN * window * shield, original.a);
         return;
     }
@@ -246,6 +251,7 @@ void main() {
     vec3 emitc = vec3(0.0);
     float trans = 1.0;
     bool captured = false;
+    float hitDepth = 1.0e20;
     float sPrev = dot(x, n);
     vec3 xPrev = x;
     vec3 vPrev = v;
@@ -295,6 +301,7 @@ void main() {
                     vec3 diskRelPos = (xc - traceCameraPosition) * BlackHoleWorldScale;
                     float diskDepth = dot(diskRelPos, cameraForward);
                     if (sceneForwardDistance(uv) > diskDepth - 0.05) {
+                        hitDepth = min(hitDepth, diskDepth);
                         float band = smoothstep(rin, rin * 1.25, rc)
                                 * (1.0 - smoothstep(rout * 0.70, rout, rc));
 
@@ -336,7 +343,9 @@ void main() {
 
     if (captured) {
         float horizonDepth = closestT * BlackHoleWorldScale * forwardScale;
-        if (sceneForwardDistance(uv) <= horizonDepth - 0.05) {
+        if (sceneForwardDistance(uv) > horizonDepth - 0.05) {
+            hitDepth = min(hitDepth, horizonDepth);
+        } else {
             captured = false;
         }
     }
@@ -350,11 +359,16 @@ void main() {
             vec2 warpedUv = rayToUv(d, cameraRight, cameraUp, cameraForward);
             vec2 suv = mix(uv, warpedUv, window * shield);
             float toward = smoothstep(0.02, 0.35, forward);
-            vec3 sampledColor = sampleScreenColor(suv, original.rgb);
+            vec3 sampledColor = sampleScreenColorRejectForeground(suv, original.rgb, occlusionDepth);
             bg += sampledColor * toward;
         }
     }
 
-    vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
-    fragColor = vec4(col, original.a);
+    float finalOcclusionDepth = hitDepth < 1.0e19 ? hitDepth : occlusionDepth;
+    if (sceneForwardDistance(uv) < finalOcclusionDepth - 0.05) {
+        fragColor = original;
+    } else {
+        vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * EXPOSURE));
+        fragColor = vec4(col, original.a);
+    }
 }

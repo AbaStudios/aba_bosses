@@ -50,10 +50,9 @@ dependencies {
         exclude group: 'org.jetbrains.kotlinx'
         exclude group: 'org.ow2.asm'
     }
-    modCompileOnly "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
+    modImplementation "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_neoforge_version"
     modCompileOnly "team.lodestar.lodestone:lodestone:$rootProject.lodestone_neoforge_version"
     modLocalRuntime "maven.modrinth:emi:$rootProject.emi_version"
-    modLocalRuntime "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
     modLocalRuntime "team.lodestar.lodestone:lodestone:$rootProject.lodestone_neoforge_version"
     modLocalRuntime "maven.modrinth:sodium:$rootProject.sodium_neoforge_version"
     modLocalRuntime "maven.modrinth:mixintrace-reforged:$rootProject.mixintrace_neoforge_version"

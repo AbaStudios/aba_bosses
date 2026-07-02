@@ -32,7 +32,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
     modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
     modImplementation "me.fzzyhmstrs:fzzy_config:$rootProject.fzzy_config_version"
-    modLocalRuntime "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_version"
+    modImplementation "maven.modrinth:simply-tooltips:$rootProject.simply_tooltips_fabric_version"
     modLocalRuntime "maven.modrinth:modmenu:$rootProject.modmenu_version"
     modLocalRuntime "maven.modrinth:sodium:$rootProject.sodium_fabric_version"
     modLocalRuntime "maven.modrinth:mixintrace:$rootProject.mixintrace_fabric_version"

@@ -8,6 +8,13 @@ architectury {
     minecraft = project.minecraft_version
 }
 
+def usingHotswapAgent = providers.gradleProperty('aba.hotswap').map { it.toBoolean() }.getOrElse(false)
+def hotswapAgentPath = new File(System.getProperty('java.home'), 'lib/hotswap/hotswap-agent.jar')
+
+if (usingHotswapAgent && !hotswapAgentPath.isFile()) {
+    throw new GradleException("HotswapAgent is enabled, but its JAR was not found at ${hotswapAgentPath}")
+}
+
 allprojects {
     group = rootProject.maven_group
     version = rootProject.mod_version
@@ -67,6 +74,18 @@ subprojects {
 
     loom {
         silentMojangMappingsLicense()
+
+        runs {
+            client {
+                if (usingHotswapAgent) {
+                    vmArg '-XX:+AllowEnhancedClassRedefinition'
+                    vmArg '-XX:+ClassUnloading'
+                    vmArg '-XX:HotswapAgent=fatjar'
+                    vmArg '-Dhotswapagent.disablePlugin=Log4j2,JacksonPlugin,Proxy'
+                    vmArg '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:5005'
+                }
+            }
+        }
     }
 
     dependencies {

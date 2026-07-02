@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Applies the Warpglass Wand's forward impulse and handles custom decay.
  */
 public final class WarpglassDash {
-    private static final double IMPULSE = 5.0; // Total distance over 2 ticks (2.5 blocks per tick)
+    private static final double IMPULSE = 10.0;
     private static final int MAX_TICKS = 2;
     private static final Map<UUID, DashState> ACTIVE_DASHES = new ConcurrentHashMap<>();
 
@@ -30,7 +30,8 @@ public final class WarpglassDash {
     }
 
     /**
-     * Adds a warp impulse in the direction the player is looking, including vertical pitch.
+     * Adds a warp impulse in the direction the player is looking, including
+     * vertical pitch.
      */
     public static void start(Player player) {
         Vec3 direction = player.getLookAngle();
