@@ -18,4 +18,4 @@ classes/
 .settings
 .github
 *.launch
-*.architectury-transformer
+.architectury-transformer/
