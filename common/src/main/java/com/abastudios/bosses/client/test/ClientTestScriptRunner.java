@@ -20,6 +20,7 @@ public final class ClientTestScriptRunner {
     private static List<Step> steps = List.of();
     private static int stepIndex;
     private static int waitTicks;
+    private static int loadedRevision = Integer.MIN_VALUE;
     private static boolean loadedForWorld;
     private static boolean running;
 
@@ -35,21 +36,22 @@ public final class ClientTestScriptRunner {
     private static void tick(Minecraft minecraft) {
         if (minecraft.level == null || minecraft.player == null || minecraft.player.connection == null) {
             loadedForWorld = false;
+            loadedRevision = Integer.MIN_VALUE;
             running = false;
             steps = List.of();
             return;
         }
-        if (!loadedForWorld) {
+        int revision = ClientTestScript.revision();
+        if (!loadedForWorld || revision != loadedRevision) {
             loadedForWorld = true;
+            loadedRevision = revision;
             Script script = new Script();
-            if (ClientTestScript.ENABLED) {
-                ClientTestScript.configure(script);
-            }
+            ClientTestScript.configure(script);
             steps = List.copyOf(script.steps);
             stepIndex = 0;
             waitTicks = 0;
             running = !steps.isEmpty();
-            AbaBosses.LOGGER.info("Started client test script steps={}", steps.size());
+            AbaBosses.LOGGER.info("Started client test script revision={} steps={}", revision, steps.size());
             return;
         }
         if (!running) {
