@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Flagger</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="toolbar">
+    <div class="group">
+      <button id="openBtn" title="Open an audio file (or drag &amp; drop one anywhere)">Open audio</button>
+      <input type="file" id="audioInput" accept="audio/*" hidden>
+      <span id="fileLabel" class="muted">no file loaded</span>
+    </div>
+
+    <div class="group">
+      <button id="playBtn" title="Play / Pause (Space)" disabled>&#9654;</button>
+      <span id="timeDisp" class="mono">0:00.000 / 0:00.000</span>
+      <label class="muted">speed
+        <select id="speed">
+          <option value="0.25">0.25×</option>
+          <option value="0.5">0.5×</option>
+          <option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option>
+        </select>
+      </label>
+      <label class="muted">vol <input type="range" id="volume" min="0" max="1" step="0.01" value="1"></label>
+      <label class="muted" title="Keep the playhead in view during playback"><input type="checkbox" id="follow" checked> follow</label>
+    </div>
+
+    <div class="group">
+      <span class="muted">flag color</span>
+      <button class="swatch active" data-color="red"    title="Red (1)"></button>
+      <button class="swatch" data-color="yellow" title="Yellow (2)"></button>
+      <button class="swatch" data-color="green"  title="Green (3)"></button>
+      <button class="swatch" data-color="blue"   title="Blue (4)"></button>
+      <label class="muted">selected ms
+        <input type="number" id="flagMs" step="1" min="0" disabled title="Exact position of the selected flag, in milliseconds">
+      </label>
+      <span id="flagCount" class="muted">0 flags</span>
+    </div>
+
+    <div class="group">
+      <button id="importBtn" title="Import flags from CSV or JSON (replaces current flags — Ctrl+Z to undo)">Import</button>
+      <input type="file" id="importInput" accept=".csv,.json,text/csv,application/json" hidden>
+      <button id="exportCsvBtn" title="Export flags as CSV (ID, Time (ms), Time (formatted), Color Label)">Export CSV</button>
+      <button id="exportJsonBtn" title="Export flags as JSON (ms + color)">Export JSON</button>
+      <span class="sep"></span>
+      <button id="zoomOutBtn" title="Zoom out">−</button>
+      <button id="zoomInBtn" title="Zoom in">+</button>
+      <button id="fitBtn" title="Zoom to fit whole track">Fit</button>
+    </div>
+  </header>
+
+  <main id="timeline">
+    <canvas id="ruler"></canvas>
+    <div id="waveWrap">
+      <canvas id="wave"></canvas>
+      <div id="flagLayer"></div>
+      <div id="playhead" hidden></div>
+      <div id="emptyHint">Drop an audio file here, or click <b>Open audio</b></div>
+    </div>
+  </main>
+
+  <footer id="help" class="muted">
+    <b>Space</b> play/pause &nbsp;·&nbsp; <b>F</b> add flag at playhead &nbsp;·&nbsp; <b>Del</b> delete selected flag
+    &nbsp;·&nbsp; <b>1–4</b> color &nbsp;·&nbsp; <b>dbl-click flag</b> cycle color
+    &nbsp;·&nbsp; <b>click/drag</b> seek &nbsp;·&nbsp; <b>drag flag</b> move
+    &nbsp;·&nbsp; <b>, .</b> nudge flag ±10&nbsp;ms (Shift: ±1&nbsp;ms)
+    &nbsp;·&nbsp; <b>←/→</b> seek 1&nbsp;s (Shift: 5&nbsp;s) &nbsp;·&nbsp; <b>Home</b> start
+    &nbsp;·&nbsp; <b>wheel</b> zoom, <b>Shift+wheel</b> pan &nbsp;·&nbsp; <b>Ctrl+Z</b> undo &nbsp;·&nbsp; <b>Esc</b> deselect
+  </footer>
+
+  <audio id="player"></audio>
+  <script src="app.js"></script>
+</body>
+</html>
