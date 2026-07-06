@@ -76,9 +76,11 @@ button {
 button:hover:not(:disabled) { background: #2d3442; }
 button:disabled { opacity: 0.4; cursor: default; }
 
-#playBtn { width: 44px; font-size: 15px; }
+#playBtn, #restartBtn { width: 44px; font-size: 15px; }
+.iconBtn { width: 36px; padding-inline: 0; font-size: 18px; line-height: 1; }
+#sidebarToggleGroup { margin-left: auto; }
 
-select, input[type="number"] {
+select, input[type="number"], input[type="text"] {
   background: #232833;
   color: var(--text);
   border: 1px solid var(--border);
@@ -87,6 +89,7 @@ select, input[type="number"] {
   font: inherit;
 }
 #flagMs { width: 90px; }
+#flagId { width: 180px; }
 input[type="range"] { width: 80px; accent-color: var(--accent); }
 input[type="checkbox"] { accent-color: var(--accent); }
 
@@ -106,6 +109,13 @@ input[type="checkbox"] { accent-color: var(--accent); }
 #fileLabel { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- timeline ---------- */
+#workspace {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
 #timeline {
   flex: 1;
   display: flex;
@@ -114,6 +124,49 @@ input[type="checkbox"] { accent-color: var(--accent); }
   padding: 10px 12px;
   gap: 0;
 }
+
+/* ---------- flag sidebar ---------- */
+#flagSidebar {
+  width: 320px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+}
+#flagSidebar[hidden] { display: none; }
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+#flagList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.flagListEmpty { padding: 18px 10px; text-align: center; }
+.flagListItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 10px 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-color: transparent;
+  text-align: left;
+}
+.flagListItem.selected { border-color: var(--accent); background: #2d3442; }
+.flagListDot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.flagListTime { color: var(--muted); font-size: 12px; }
+.flagListId { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 #ruler {
   width: 100%;
@@ -160,6 +213,16 @@ input[type="checkbox"] { accent-color: var(--accent); }
 
 /* ---------- flags ---------- */
 #flagLayer { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+
+#selectionBox {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 9;
+  border: 1px solid var(--accent);
+  background: rgba(110, 168, 254, 0.16);
+  pointer-events: none;
+}
 
 .flag {
   position: absolute;

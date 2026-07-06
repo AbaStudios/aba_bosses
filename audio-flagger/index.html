@@ -16,6 +16,7 @@
 
     <div class="group">
       <button id="playBtn" title="Play / Pause (Space)" disabled>&#9654;</button>
+      <button id="restartBtn" title="Restart playback from the beginning" aria-label="Restart playback from the beginning" disabled>&#8634;</button>
       <span id="timeDisp" class="mono">0:00.000 / 0:00.000</span>
       <label class="muted">speed
         <select id="speed">
@@ -38,6 +39,9 @@
       <label class="muted">selected ms
         <input type="number" id="flagMs" step="1" min="0" disabled title="Exact position of the selected flag, in milliseconds">
       </label>
+      <label class="muted">selected id
+        <input type="text" id="flagId" disabled title="ID of the selected flag; for multiple flags, enter a base ID to number them in time order">
+      </label>
       <span id="flagCount" class="muted">0 flags</span>
     </div>
 
@@ -51,22 +55,37 @@
       <button id="zoomInBtn" title="Zoom in">+</button>
       <button id="fitBtn" title="Zoom to fit whole track">Fit</button>
     </div>
+
+    <div class="group" id="sidebarToggleGroup">
+      <button id="sidebarBtn" class="iconBtn" title="Show flags" aria-label="Show flags" aria-controls="flagSidebar" aria-expanded="false">&#9776;</button>
+    </div>
   </header>
 
-  <main id="timeline">
-    <canvas id="ruler"></canvas>
-    <div id="waveWrap">
-      <canvas id="wave"></canvas>
-      <div id="flagLayer"></div>
-      <div id="playhead" hidden></div>
-      <div id="emptyHint">Drop an audio file here, or click <b>Open audio</b></div>
-    </div>
-  </main>
+  <div id="workspace">
+    <main id="timeline">
+      <canvas id="ruler"></canvas>
+      <div id="waveWrap">
+        <canvas id="wave"></canvas>
+        <div id="flagLayer"></div>
+        <div id="selectionBox" hidden></div>
+        <div id="playhead" hidden></div>
+        <div id="emptyHint">Drop an audio file here, or click <b>Open audio</b></div>
+      </div>
+    </main>
+
+    <aside id="flagSidebar" aria-label="Flags" hidden>
+      <div class="sidebarHeader">
+        <strong>Flags</strong>
+        <span id="sidebarFlagCount" class="muted">0</span>
+      </div>
+      <div id="flagList"></div>
+    </aside>
+  </div>
 
   <footer id="help" class="muted">
-    <b>Space</b> play/pause &nbsp;·&nbsp; <b>F</b> add flag at playhead &nbsp;·&nbsp; <b>Del</b> delete selected flag
+    <b>Space</b> play/pause &nbsp;·&nbsp; <b>F</b> add flag at playhead &nbsp;·&nbsp; <b>Del</b> delete selected flags
     &nbsp;·&nbsp; <b>1–4</b> color &nbsp;·&nbsp; <b>dbl-click flag</b> cycle color
-    &nbsp;·&nbsp; <b>click/drag</b> seek &nbsp;·&nbsp; <b>drag flag</b> move
+    &nbsp;·&nbsp; <b>click</b> seek, <b>drag</b> select &nbsp;·&nbsp; <b>Ctrl/Shift+click</b> multi-select &nbsp;·&nbsp; <b>drag flag</b> move
     &nbsp;·&nbsp; <b>, .</b> nudge flag ±10&nbsp;ms (Shift: ±1&nbsp;ms)
     &nbsp;·&nbsp; <b>←/→</b> seek 1&nbsp;s (Shift: 5&nbsp;s) &nbsp;·&nbsp; <b>Home</b> start
     &nbsp;·&nbsp; <b>wheel</b> zoom, <b>Shift+wheel</b> pan &nbsp;·&nbsp; <b>Ctrl+Z</b> undo &nbsp;·&nbsp; <b>Esc</b> deselect

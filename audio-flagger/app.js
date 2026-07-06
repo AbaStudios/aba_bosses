@@ -8,13 +8,14 @@ const COLOR_ORDER = ['red', 'yellow', 'green', 'blue'];
 const $ = id => document.getElementById(id);
 const els = {
   toolbar: $('toolbar'), openBtn: $('openBtn'), audioInput: $('audioInput'), fileLabel: $('fileLabel'),
-  playBtn: $('playBtn'), timeDisp: $('timeDisp'), speed: $('speed'), volume: $('volume'), follow: $('follow'),
-  flagMs: $('flagMs'), flagCount: $('flagCount'),
+  playBtn: $('playBtn'), restartBtn: $('restartBtn'), timeDisp: $('timeDisp'), speed: $('speed'), volume: $('volume'), follow: $('follow'),
+  flagMs: $('flagMs'), flagId: $('flagId'), flagCount: $('flagCount'),
   importBtn: $('importBtn'), importInput: $('importInput'),
   exportCsvBtn: $('exportCsvBtn'), exportJsonBtn: $('exportJsonBtn'),
   zoomInBtn: $('zoomInBtn'), zoomOutBtn: $('zoomOutBtn'), fitBtn: $('fitBtn'),
   ruler: $('ruler'), waveWrap: $('waveWrap'), wave: $('wave'),
-  flagLayer: $('flagLayer'), playhead: $('playhead'), emptyHint: $('emptyHint'),
+  flagLayer: $('flagLayer'), selectionBox: $('selectionBox'), playhead: $('playhead'), emptyHint: $('emptyHint'),
+  sidebarBtn: $('sidebarBtn'), flagSidebar: $('flagSidebar'), sidebarFlagCount: $('sidebarFlagCount'), flagList: $('flagList'),
   player: $('player'),
 };
 
@@ -29,7 +30,10 @@ let viewStart = 0;         // seconds at left edge
 let dirty = true;
 
 let flags = [];            // { id, time (sec), color, el }
-let selectedId = null;
+let selectedFlags = new Set();
+let selectionAnchor = null;
+let pendingPlaybackFlag = null;
+let flagIdDirty = false;
 let defaultColor = 'red';
 let lastPulseT = 0;
 
@@ -101,6 +105,7 @@ async function loadAudio(file) {
 
     els.fileLabel.textContent = file.name;
     els.playBtn.disabled = false;
+    els.restartBtn.disabled = false;
     els.playhead.hidden = false;
     els.emptyHint.hidden = true;
     dirty = true;
@@ -139,6 +144,7 @@ function makeFlag(time, color, id) {
   const f = { id: id || uuid(), time, color: color || defaultColor, el: null };
   const el = document.createElement('div');
   el.className = 'flag';
+  el.title = f.id;
   el.style.setProperty('--c', COLORS[f.color] || COLORS.red);
   el.innerHTML = '<div class="line"></div><div class="cap"></div>';
   attachFlagHandlers(el, f);
@@ -148,9 +154,12 @@ function makeFlag(time, color, id) {
 }
 
 function setFlags(list) {
+  const selectedIds = new Set([...selectedFlags].map(f => f.id));
+  const anchorId = selectionAnchor ? selectionAnchor.id : null;
   els.flagLayer.innerHTML = '';
   flags = list.map(f => makeFlag(f.time, f.color, f.id));
-  if (!flags.some(f => f.id === selectedId)) selectedId = null;
+  selectedFlags = new Set(flags.filter(f => selectedIds.has(f.id)));
+  selectionAnchor = flags.find(f => f.id === anchorId) || null;
   refreshSelection();
   updateFlagCount();
   layoutFlags();
@@ -168,11 +177,10 @@ function addFlagAt(time) {
 }
 
 function deleteSelected() {
-  const i = flags.findIndex(f => f.id === selectedId);
-  if (i < 0) return;
+  if (!selectedFlags.size) return;
   pushUndo();
-  flags[i].el.remove();
-  flags.splice(i, 1);
+  for (const f of selectedFlags) f.el.remove();
+  flags = flags.filter(f => !selectedFlags.has(f));
   selectFlag(null);
   updateFlagCount();
   scheduleSave();
@@ -181,30 +189,118 @@ function deleteSelected() {
 function setFlagColor(f, color) {
   f.color = color;
   f.el.style.setProperty('--c', COLORS[color]);
-  scheduleSave();
 }
 
-function selectFlag(id) {
-  selectedId = id;
+function selectFlag(id, mode = 'replace') {
+  const flag = flags.find(f => f.id === id) || null;
+  if (!flag) {
+    selectedFlags.clear();
+    selectionAnchor = null;
+    pendingPlaybackFlag = null;
+  } else if (mode === 'toggle') {
+    if (selectedFlags.has(flag)) selectedFlags.delete(flag);
+    else selectedFlags.add(flag);
+    selectionAnchor = flag;
+  } else if (mode === 'range' && selectionAnchor && flags.includes(selectionAnchor)) {
+    const ordered = [...flags].sort((a, b) => a.time - b.time);
+    const start = ordered.indexOf(selectionAnchor);
+    const end = ordered.indexOf(flag);
+    selectedFlags = new Set(ordered.slice(Math.min(start, end), Math.max(start, end) + 1));
+  } else {
+    selectedFlags = new Set([flag]);
+    selectionAnchor = flag;
+  }
   refreshSelection();
 }
 
 function refreshSelection() {
-  let sel = null;
   for (const f of flags) {
-    f.el.classList.toggle('selected', f.id === selectedId);
-    if (f.id === selectedId) sel = f;
+    f.el.classList.toggle('selected', selectedFlags.has(f));
   }
+  const sel = selectedFlag();
   els.flagMs.disabled = !sel;
   els.flagMs.value = sel ? Math.round(sel.time * 1000) : '';
+  els.flagId.disabled = selectedFlags.size === 0;
+  els.flagId.setCustomValidity('');
+  els.flagId.value = sel ? sel.id : '';
+  els.flagId.placeholder = selectedFlags.size > 1 ? `base ID for ${selectedFlags.size} flags` : '';
+  updateFlagCount();
+  refreshSidebarSelection();
 }
 
 function selectedFlag() {
-  return flags.find(f => f.id === selectedId) || null;
+  return selectedFlags.size === 1 ? selectedFlags.values().next().value : null;
+}
+
+function selectedFlagsInTimeOrder() {
+  return flags.filter(f => selectedFlags.has(f)).sort((a, b) => a.time - b.time);
+}
+
+function selectLastPassedFlag(time) {
+  let last = null;
+  for (const f of flags) {
+    if (f.time <= time && (!last || f.time > last.time)) last = f;
+  }
+  const current = selectedFlag();
+  if (last === current) return;
+  commitFlagIdEdit();
+  if (last) selectFlag(last.id);
+  else selectFlag(null);
 }
 
 function updateFlagCount() {
-  els.flagCount.textContent = `${flags.length} flag${flags.length === 1 ? '' : 's'}`;
+  const total = `${flags.length} flag${flags.length === 1 ? '' : 's'}`;
+  els.flagCount.textContent = selectedFlags.size ? `${total} · ${selectedFlags.size} selected` : total;
+}
+
+function renderFlagList() {
+  els.flagList.innerHTML = '';
+  const ordered = [...flags].sort((a, b) => a.time - b.time);
+  els.sidebarFlagCount.textContent = ordered.length;
+  if (!ordered.length) {
+    const empty = document.createElement('div');
+    empty.className = 'flagListEmpty muted';
+    empty.textContent = 'No flags';
+    els.flagList.appendChild(empty);
+    return;
+  }
+
+  for (const f of ordered) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'flagListItem';
+    button._flag = f;
+    button.title = `Go to ${f.id} at ${fmtTime(f.time)}`;
+
+    const dot = document.createElement('span');
+    dot.className = 'flagListDot';
+    dot.style.setProperty('--c', COLORS[f.color] || COLORS.red);
+    const time = document.createElement('span');
+    time.className = 'flagListTime mono';
+    time.textContent = fmtTime(f.time);
+    const id = document.createElement('span');
+    id.className = 'flagListId';
+    id.textContent = f.id;
+    button.append(dot, time, id);
+
+    button.addEventListener('click', () => {
+      commitFlagIdEdit();
+      pendingPlaybackFlag = null;
+      selectFlag(f.id);
+      seek(f.time);
+      viewStart = f.time - waveW / pxPerSec / 2;
+      clampView();
+      dirty = true;
+    });
+    els.flagList.appendChild(button);
+  }
+  refreshSidebarSelection();
+}
+
+function refreshSidebarSelection() {
+  for (const item of els.flagList.children) {
+    if (item._flag) item.classList.toggle('selected', selectedFlags.has(item._flag));
+  }
 }
 
 function layoutFlags() {
@@ -224,7 +320,16 @@ function attachFlagHandlers(el, f) {
     if (e.button !== 0) return;
     e.stopPropagation();
     e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      selectFlag(f.id, 'toggle');
+      return;
+    }
+    if (e.shiftKey) {
+      selectFlag(f.id, 'range');
+      return;
+    }
     selectFlag(f.id);
+    pendingPlaybackFlag = f;
 
     const startX = e.clientX, startTime = f.time;
     let moved = false;
@@ -257,6 +362,7 @@ function attachFlagHandlers(el, f) {
     pushUndo();
     const next = COLOR_ORDER[(COLOR_ORDER.indexOf(f.color) + 1) % COLOR_ORDER.length];
     setFlagColor(f, next);
+    scheduleSave();
   });
 }
 
@@ -382,6 +488,7 @@ function storageKey() {
 }
 
 function scheduleSave() {
+  renderFlagList();
   const key = storageKey();
   if (!key) return;
   clearTimeout(saveTimer);
@@ -512,10 +619,18 @@ function frame() {
   const t = els.player.currentTime;
 
   if (!els.player.paused && peaks) {
+    let lastPassed = null;
     if (t > lastPulseT) {
       for (const f of flags) {
-        if (f.time > lastPulseT && f.time <= t) pulse(f.color);
+        if (f.time > lastPulseT && f.time <= t) {
+          pulse(f.color);
+          if (!lastPassed || f.time > lastPassed.time) lastPassed = f;
+        }
       }
+    }
+    if (lastPassed) {
+      commitFlagIdEdit();
+      selectFlag(lastPassed.id);
     }
     lastPulseT = t;
 
@@ -546,8 +661,20 @@ function frame() {
 
 function togglePlay() {
   if (!peaks) return;
-  if (els.player.paused) els.player.play();
-  else els.player.pause();
+  if (els.player.paused) {
+    if (pendingPlaybackFlag && flags.includes(pendingPlaybackFlag)) seek(pendingPlaybackFlag.time);
+    pendingPlaybackFlag = null;
+    els.player.play();
+  } else {
+    els.player.pause();
+  }
+}
+
+function restartPlayback() {
+  if (!peaks) return;
+  pendingPlaybackFlag = null;
+  seek(0);
+  els.player.play();
 }
 
 function seek(t) {
@@ -578,11 +705,28 @@ els.audioInput.addEventListener('change', () => {
 });
 
 els.playBtn.addEventListener('click', togglePlay);
+els.restartBtn.addEventListener('click', restartPlayback);
+els.sidebarBtn.addEventListener('click', () => {
+  const opening = els.flagSidebar.hidden;
+  els.flagSidebar.hidden = !opening;
+  els.sidebarBtn.setAttribute('aria-expanded', String(opening));
+  els.sidebarBtn.setAttribute('aria-label', opening ? 'Hide flags' : 'Show flags');
+  els.sidebarBtn.title = opening ? 'Hide flags' : 'Show flags';
+  if (opening) renderFlagList();
+  resizeCanvases();
+});
 els.speed.addEventListener('change', () => { els.player.playbackRate = parseFloat(els.speed.value); });
 els.volume.addEventListener('input', () => { els.player.volume = parseFloat(els.volume.value); });
 
-els.player.addEventListener('play', () => { lastPulseT = els.player.currentTime; });
-els.player.addEventListener('seeked', () => { lastPulseT = els.player.currentTime; dirty = true; });
+els.player.addEventListener('play', () => {
+  lastPulseT = els.player.currentTime;
+  selectLastPassedFlag(lastPulseT);
+});
+els.player.addEventListener('seeked', () => {
+  lastPulseT = els.player.currentTime;
+  if (!els.player.paused) selectLastPassedFlag(lastPulseT);
+  dirty = true;
+});
 
 document.querySelectorAll('.swatch').forEach(btn => {
   btn.addEventListener('click', () => setDefaultColor(btn.dataset.color));
@@ -591,10 +735,11 @@ document.querySelectorAll('.swatch').forEach(btn => {
 function setDefaultColor(color) {
   defaultColor = color;
   document.querySelectorAll('.swatch').forEach(b => b.classList.toggle('active', b.dataset.color === color));
-  const sel = selectedFlag();
-  if (sel && sel.color !== color) {
+  const changed = [...selectedFlags].filter(f => f.color !== color);
+  if (changed.length) {
     pushUndo();
-    setFlagColor(sel, color);
+    for (const f of changed) setFlagColor(f, color);
+    scheduleSave();
   }
 }
 
@@ -609,6 +754,51 @@ els.flagMs.addEventListener('change', () => {
   refreshSelection();
   scheduleSave();
 });
+
+els.flagId.addEventListener('input', () => {
+  els.flagId.setCustomValidity('');
+  flagIdDirty = true;
+});
+
+function commitFlagIdEdit() {
+  if (!flagIdDirty) return;
+  flagIdDirty = false;
+  const selected = selectedFlagsInTimeOrder();
+  const baseId = els.flagId.value.trim();
+  if (!selected.length || !baseId) {
+    refreshSelection();
+    return;
+  }
+
+  const newIds = selected.map((f, index) => index ? `${baseId}${index}` : baseId);
+  const selectedSet = new Set(selected);
+  const existingIds = new Set(flags.filter(f => !selectedSet.has(f)).map(f => f.id));
+  const conflict = newIds.find(id => existingIds.has(id));
+  if (conflict) {
+    els.flagId.setCustomValidity(`A flag with ID "${conflict}" already exists.`);
+    els.flagId.reportValidity();
+    return;
+  }
+
+  if (selected.every((f, index) => f.id === newIds[index])) {
+    refreshSelection();
+    return;
+  }
+
+  pushUndo();
+  selected.forEach((f, index) => {
+    f.id = newIds[index];
+    f.el.title = f.id;
+  });
+  selectionAnchor = selected[0];
+  refreshSelection();
+  scheduleSave();
+}
+
+els.flagId.addEventListener('change', commitFlagIdEdit);
+document.addEventListener('pointerdown', e => {
+  if (e.target !== els.flagId && !els.flagList.contains(e.target)) commitFlagIdEdit();
+}, true);
 
 els.importBtn.addEventListener('click', () => els.importInput.click());
 els.importInput.addEventListener('change', () => {
@@ -627,9 +817,10 @@ els.fitBtn.addEventListener('click', () => {
   dirty = true;
 });
 
-// click / drag on the waveform (or ruler) = seek / scrub
+// The ruler always scrubs. A waveform click seeks; dragging selects a time range.
 function scrubHandler(e) {
   if (e.button !== 0 || !peaks) return;
+  pendingPlaybackFlag = null;
   selectFlag(null);
   seek(timeAtX(e.clientX));
   const target = e.currentTarget;
@@ -644,8 +835,55 @@ function scrubHandler(e) {
   target.addEventListener('pointerup', onUp);
   target.addEventListener('pointercancel', onUp);
 }
-els.waveWrap.addEventListener('pointerdown', scrubHandler);
 els.ruler.addEventListener('pointerdown', scrubHandler);
+
+els.waveWrap.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || !peaks) return;
+  pendingPlaybackFlag = null;
+  e.preventDefault();
+  const target = e.currentTarget;
+  const rect = target.getBoundingClientRect();
+  const startX = clamp(e.clientX - rect.left, 0, rect.width);
+  const originalSelection = (e.ctrlKey || e.metaKey) ? new Set(selectedFlags) : new Set();
+  let selecting = false;
+
+  target.setPointerCapture(e.pointerId);
+  const onMove = ev => {
+    const currentX = clamp(ev.clientX - rect.left, 0, rect.width);
+    if (!selecting && Math.abs(currentX - startX) < 4) return;
+    selecting = true;
+
+    const left = Math.min(startX, currentX);
+    const right = Math.max(startX, currentX);
+    els.selectionBox.hidden = false;
+    els.selectionBox.style.left = `${left}px`;
+    els.selectionBox.style.width = `${right - left}px`;
+
+    selectedFlags = new Set(originalSelection);
+    for (const f of flags) {
+      const x = (f.time - viewStart) * pxPerSec;
+      if (x >= left && x <= right) selectedFlags.add(f);
+    }
+    refreshSelection();
+  };
+  const onUp = ev => {
+    target.removeEventListener('pointermove', onMove);
+    target.removeEventListener('pointerup', onUp);
+    target.removeEventListener('pointercancel', onUp);
+    els.selectionBox.hidden = true;
+    if (selecting) {
+      const selected = selectedFlagsInTimeOrder();
+      selectionAnchor = selected.length ? selected[selected.length - 1] : null;
+      refreshSelection();
+    } else if (ev.type !== 'pointercancel') {
+      selectFlag(null);
+      seek(timeAtX(ev.clientX));
+    }
+  };
+  target.addEventListener('pointermove', onMove);
+  target.addEventListener('pointerup', onUp);
+  target.addEventListener('pointercancel', onUp);
+});
 
 // wheel: zoom (plain) / pan (shift or horizontal scroll)
 els.waveWrap.addEventListener('wheel', e => {
